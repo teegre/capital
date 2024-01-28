@@ -1,2 +1,2 @@
-# Capsules
-A video game
+# Capital
+A video game (work in progress)
