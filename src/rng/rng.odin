@@ -78,7 +78,7 @@ set_seed :: proc(seed: string = "") {
   }
   CAPSULE_RNG = rand.create(U_SEED)
   ROLL_RNG = rand.create(U_SEED + 1)
-  ACTION_RNG = rand.create(U_SEED + 1)
+  ACTION_RNG = rand.create(U_SEED + 2)
 }
 
 roll :: proc(s: int = 6, n: int = 2) -> ( sum: int ) {
