@@ -1,6 +1,7 @@
 package tests
 
 import "core:testing"
+import "core:log"
 import "core:mem"
 import "core:fmt"
 import "../capsules"
