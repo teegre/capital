@@ -3,12 +3,12 @@ package shield
 import "../../entities"
 import "../../rng"
 
-use :: proc(source, target: ^entities.Character) -> (data: int, flags: entities.CapsuleFlags) {
+use :: proc(source, target: ^entities.Character) -> (data: int, action: entities.CapsuleEventName, flags: entities.CapsuleFlags) {
   using entities
-  incl_elem(&flags, CapsuleFlag.DEFEND)
+  action = .DEFEND
   data = rng.roll(source.level + 5, source.defense * source.defense_mul)
   source.shield += data
-  return data, flags
+  return data, action, flags
 }
 
 new_capsule :: proc() -> ^entities.Capsule {

@@ -4,14 +4,12 @@ import "core:fmt"
 
 CapsuleFlag :: enum {
   ATTACHED,
-  ATTACK,
   BLOCKED,
   CRITICAL,
   DEAD,
-  DEFEND,
   DODGE,
-  ESCAPE,
-  HEAL,
+  ESCAPED,
+  HEALED,
   IMMUNE,
   MISS,
   NOCAPSULE,
@@ -19,21 +17,22 @@ CapsuleFlag :: enum {
   NOEFFECT,
   NOPAIN,
   OVERKILL,
-  PASS,
-  SUCCESS,
 }
 
 CapsuleEventName :: enum {
-  ATTACK,
-  HURT,
-  ATTACH,
-  DETACH,
   ACTIVATE,
+  ATTACH,
+  ATTACK,
   DEACTIVATE,
+  DEFEND,
+  DETACH,
+  HURT,
+  PASS,
 }
 
+
 CapsuleFlags :: distinct bit_set[CapsuleFlag]
-CapsuleUse :: #type proc(source, target: ^Character) -> (value: int, flags: CapsuleFlags)
+CapsuleUse :: #type proc(source, target: ^Character) -> (value: int, action: CapsuleEventName, flags: CapsuleFlags)
 CapsuleEffect :: #type proc(source, target: ^Character, event_name: CapsuleEventName, data: int) -> (value: int, flags: CapsuleFlags)
 // OnAttach :: #type proc()
 // OnDetach :: #type proc()
@@ -103,6 +102,7 @@ delete_character :: proc(character: ^Character) {
   }
   delete_dynamic_array(character.inventory)
   delete_dynamic_array(character.active_capsules)
+  delete_dynamic_array(character.immunity)
   free(character)
 }
 
@@ -196,7 +196,7 @@ drop :: proc(owner: ^Character, capsule_name: string) {
   }
 }
 
-character_actions :: proc(owner: Character) -> (action_list: [dynamic]string) {
+character_actions :: proc(owner: ^Character) -> (action_list: [dynamic]string) {
   for capsule in owner.inventory {
     if capsule.active {
       append_elem(&action_list, capsule.name)

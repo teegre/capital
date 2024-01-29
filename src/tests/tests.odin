@@ -75,7 +75,6 @@ test_attack :: proc(t: ^testing.T) {
   expect(t, TPlayer.inventory[0].name == "attack")
   expect(t, ok == true, "Could not register capsule!")
   dmg, flags := perform_action(TPlayer, TEnemy, "attack")
-  fmt.println(dmg, flags)
   expect(t, TEnemy.health < 50 || .MISS in flags)
 }
 
@@ -103,6 +102,8 @@ test_combat :: proc(t: ^testing.T) {
   TEnemy = new_character()
   defer delete_character(TPlayer)
   defer delete_character(TEnemy)
+  TPlayer.name = "P1"
+  TEnemy.name = "P2"
   register_capsule(TPlayer, get_new_capsule("attack"))
   register_capsule(TPlayer, get_new_capsule("shield"))
   register_capsule(TPlayer, get_new_capsule("relieve"))
@@ -160,12 +161,28 @@ test_relieve :: proc(t: ^testing.T) {
   fmt.println("P2 DIED!")
 }
 
-_main :: proc() {
+@test
+test_action_list :: proc(t: ^testing.T) {
+  using entities, capsules, testing
+  TPlayer = new_character()
+  defer delete_character(TPlayer)
+  register_capsule(TPlayer, get_new_capsule("attack"))
+  register_capsule(TPlayer, get_new_capsule("shield"))
+  register_capsule(TPlayer, get_new_capsule("relieve"))
+  action_list := character_actions(TPlayer)
+  defer delete_dynamic_array(action_list)
+  expect(t, action_list[0] == "attack" && action_list[1] == "shield")
+
+}
+
+_test_memory_leak :: proc() {
   using entities, actions, capsules, rng
   fmt.println("SEED: RABL5NC2", seed)
   set_seed("RABL5NC2")
   TPlayer = new_character()
   TEnemy = new_character()
+  TPlayer.name = "P1"
+  TEnemy.name = "P2"
   register_capsule(TPlayer, get_new_capsule("attack"))
   register_capsule(TPlayer, get_new_capsule("shield"))
   register_capsule(TPlayer, get_new_capsule("relieve"))
@@ -191,13 +208,17 @@ _main :: proc() {
   fmt.println("P2 DIED!")
 }
 
-main :: proc() {
+@test
+test_memory_leak :: proc(t: ^testing.T) {
+  using testing
   track: mem.Tracking_Allocator
   mem.tracking_allocator_init(&track, context.allocator)
   defer mem.tracking_allocator_destroy(&track)
   context.allocator = mem.tracking_allocator(&track)
 
-  _main()
+  _test_memory_leak()
+
+  expect(t, len(track.allocation_map) == 0 && len(track.bad_free_array) == 0)
 
   for _, leak in track.allocation_map {
 	  fmt.printf("%v leaked %m\n", leak.location, leak.size)

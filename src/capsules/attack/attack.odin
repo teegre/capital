@@ -13,9 +13,9 @@ new_capsule :: proc() -> ^entities.Capsule {
   return capsule
 }
 
-use :: proc(source, target: ^entities.Character) -> (dmg: int, flags: entities.CapsuleFlags) {
+use :: proc(source, target: ^entities.Character) -> (dmg: int, action: entities.CapsuleEventName, flags: entities.CapsuleFlags) {
   using entities, rng
-  set_flag(&flags, .ATTACK)
+  action = .ATTACK
 
   if success(source, target) {
     dmg = roll(source.level + 5, source.strength * source.strength_mul)
@@ -25,8 +25,8 @@ use :: proc(source, target: ^entities.Character) -> (dmg: int, flags: entities.C
     }
   } else {
     set_flag(&flags, .MISS)
-    return 0, flags
+    return 0, action, flags
   }
 
-  return dmg, flags
+  return dmg, action, flags
 }
