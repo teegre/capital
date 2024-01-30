@@ -1,6 +1,5 @@
 package leech
 
-import "core:fmt"
 import "../../entities"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {

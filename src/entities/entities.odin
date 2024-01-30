@@ -46,6 +46,7 @@ Capsule :: struct {
   active: bool,
   owner: ^Character,
   target: ^Character,
+  value: int,
   use: CapsuleUse,
   effect: CapsuleEffect,
 }
@@ -140,6 +141,15 @@ get_capsule_from_inventory :: proc(owner: ^Character, capsule_name: string) -> ^
   for capsule in owner.inventory {
     if capsule.name == capsule_name {
         return capsule
+    }
+  }
+  return nil
+}
+
+get_active_capsule :: proc(target: ^Character, capsule_name: string) -> ^Capsule {
+  for capsule in target.active_capsules {
+    if capsule.name == capsule_name {
+      return capsule
     }
   }
   return nil

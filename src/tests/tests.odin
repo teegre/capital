@@ -237,6 +237,29 @@ _test_memory_leak :: proc() {
 }
 
 @test
+test_poison :: proc(t: ^testing.T) {
+  using rng, entities, capsules, actions, testing
+  set_seed("LELPIWCW")
+  TPlayer = new_character()
+  TEnemy = new_character()
+  TPlayer.name = "Player"
+  TEnemy.name = "Enemy"
+  defer delete_character(TPlayer)
+  defer delete_character(TEnemy)
+  new_capsule(TPlayer, "attack")
+  new_capsule(TPlayer, "poison")
+  new_capsule(TEnemy, "attack")
+  new_capsule(TEnemy, "shield")
+  pdmg, edmg: int
+  pflags, eflags: CapsuleFlags
+  edmg, eflags = perform_action(TEnemy, TPlayer, "attack")
+  pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
+  edmg, eflags = perform_action(TEnemy, TPlayer, "shield")
+  pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
+  expect(t, TEnemy.health == 47 && len(TEnemy.active_capsules) == 0)
+}
+
+@test
 test_memory_leak :: proc(t: ^testing.T) {
   using testing
   track: mem.Tracking_Allocator
