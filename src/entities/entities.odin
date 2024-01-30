@@ -139,7 +139,7 @@ get_capsule_from_inventory :: proc(owner: ^Character, capsule_name: string) -> ^
   */
   for capsule in owner.inventory {
     if capsule.name == capsule_name {
-      return capsule
+        return capsule
     }
   }
   return nil

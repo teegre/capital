@@ -4,11 +4,13 @@ import "../entities"
 import "attack"
 import "shield"
 import "relieve"
+import "leech"
 
 capsules_map := map[string]Entry{
   "attack" = attack.new_capsule,
   "shield" = shield.new_capsule,
   "relieve" = relieve.new_capsule,
+  "leech" = leech.new_capsule,
 }
 
 capsule_list := []string{
@@ -37,10 +39,12 @@ capsule_list := []string{
   "wreckage",
 }
 
-Entry :: #type proc() -> ^entities.Capsule
+Entry :: #type proc(owner: ^entities.Character) -> bool
 
-get_new_capsule :: proc(name: string) -> ^entities.Capsule {
-  entry := capsules_map[name] or_else nil
+new_capsule :: proc(owner: ^entities.Character, capsule_name: string) -> bool {
+  entry := capsules_map[capsule_name] or_else nil
   assert(type_of(entry) == Entry)
-  return entry()
+  return entry(owner)
 }
+
+

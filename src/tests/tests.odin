@@ -43,14 +43,14 @@ test_rng :: proc(t: ^testing.T) {
 
 @test
 test_characters :: proc(t: ^testing.T) {
-  using entities
+  using entities, testing
   TPlayer = new_character()
   TEnemy = new_character()
   defer delete_character(TPlayer)
   defer delete_character(TEnemy)
   TPlayer.name = "Teegre"
   TEnemy.name = "Nemesis"
-  testing.expect(t, TPlayer.name == "Teegre" && TEnemy.name == "Nemesis")
+  expect(t, TPlayer.name == "Teegre" && TEnemy.name == "Nemesis")
 }
 
 @test
@@ -58,7 +58,7 @@ test_new_capsule :: proc(t: ^testing.T) {
   using capsules, entities, testing
   TPlayer = new_character()
   defer delete_character(TPlayer)
-  register_capsule(TPlayer, get_new_capsule("attack"))
+  ok := new_capsule(TPlayer, "attack")
   expect(t, TPlayer.inventory[0].name == "attack")
 }
 
@@ -72,9 +72,9 @@ test_attack :: proc(t: ^testing.T) {
   TEnemy = new_character()
   defer delete_character(TPlayer)
   defer delete_character(TEnemy)
-  ok := register_capsule(TPlayer, get_new_capsule("attack"))
-  expect(t, TPlayer.inventory[0].name == "attack")
+  ok := new_capsule(TPlayer, "attack")
   expect(t, ok == true, "Could not register capsule!")
+  expect(t, TPlayer.inventory[0].name == "attack")
   dmg, flags := perform_action(TPlayer, TEnemy, "attack")
   expect(t, TEnemy.health < 50 || .MISS in flags)
 }
@@ -105,12 +105,12 @@ test_combat :: proc(t: ^testing.T) {
   defer delete_character(TEnemy)
   TPlayer.name = "P1"
   TEnemy.name = "P2"
-  register_capsule(TPlayer, get_new_capsule("attack"))
-  register_capsule(TPlayer, get_new_capsule("shield"))
-  register_capsule(TPlayer, get_new_capsule("relieve"))
-  register_capsule(TEnemy, get_new_capsule("attack"))
-  register_capsule(TEnemy, get_new_capsule("shield"))
-  register_capsule(TEnemy, get_new_capsule("relieve"))
+  new_capsule(TPlayer, "attack")
+  new_capsule(TPlayer, "shield")
+  new_capsule(TPlayer, "relieve")
+  new_capsule(TEnemy, "attack")
+  new_capsule(TEnemy, "shield")
+  new_capsule(TEnemy, "relieve")
   pdmg, edmg := 0, 0
   pflags: CapsuleFlags
   eflags: CapsuleFlags
@@ -138,12 +138,12 @@ test_relieve :: proc(t: ^testing.T) {
   TEnemy = new_character()
   defer delete_character(TPlayer)
   defer delete_character(TEnemy)
-  register_capsule(TPlayer, get_new_capsule("attack"))
-  register_capsule(TPlayer, get_new_capsule("shield"))
-  register_capsule(TPlayer, get_new_capsule("relieve"))
-  register_capsule(TEnemy, get_new_capsule("attack"))
-  register_capsule(TEnemy, get_new_capsule("shield"))
-  register_capsule(TEnemy, get_new_capsule("relieve"))
+  new_capsule(TPlayer, "attack")
+  new_capsule(TPlayer, "shield")
+  new_capsule(TPlayer, "relieve")
+  new_capsule(TEnemy, "attack")
+  new_capsule(TEnemy, "shield")
+  new_capsule(TEnemy, "relieve")
   pdmg, edmg := 0, 0
   pflags: CapsuleFlags
   eflags: CapsuleFlags
@@ -167,29 +167,56 @@ test_action_list :: proc(t: ^testing.T) {
   using entities, capsules, testing
   TPlayer = new_character()
   defer delete_character(TPlayer)
-  register_capsule(TPlayer, get_new_capsule("attack"))
-  register_capsule(TPlayer, get_new_capsule("shield"))
-  register_capsule(TPlayer, get_new_capsule("relieve"))
+  new_capsule(TPlayer, "attack")
+  new_capsule(TPlayer, "shield")
+  new_capsule(TPlayer, "relieve")
   action_list := character_actions(TPlayer)
   defer delete_dynamic_array(action_list)
-  expect(t, action_list[0] == "attack" && action_list[1] == "shield")
+  expect(t, len(action_list) == 2 && action_list[0] == "attack" && action_list[1] == "shield")
+}
 
+@test
+test_leech :: proc(t: ^testing.T) {
+  using entities, actions, capsules, rng, testing
+  set_seed("LELPIWCW")
+  fmt.println("SEED: LELPIWCW")
+  TPlayer = new_character()
+  TEnemy = new_character()
+  TPlayer.name = "Player"
+  TPlayer.health = 25
+  TEnemy.name = "Enemy"
+  new_capsule(TPlayer, "attack")
+  new_capsule(TPlayer, "leech")
+  new_capsule(TEnemy, "shield")
+  defer delete_character(TPlayer)
+  defer delete_character(TEnemy)
+  pdmg, edmg :=  0, 0
+  pflags, eflags: CapsuleFlags
+  pdmg, pflags = perform_action(TPlayer, TEnemy, "leech")
+  expect(t, TEnemy.active_capsules[0].name == "leech")
+  edmg, eflags =  perform_action(TEnemy, TPlayer, "shield")
+  expect(t, TEnemy.shield > 0, "Shield did not work as expected...")
+  pdmg, pflags = perform_action(TPlayer, TEnemy, "leech")
+  expect(t, pdmg == 0 && .NOCAPSULE in pflags, "Player leech has not been deactivated...")
+  pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
+  expect(t, TPlayer.health == 28 && TEnemy.health == 47, "leech did not work...")
+  detach(TEnemy, "leech")
 }
 
 _test_memory_leak :: proc() {
   using entities, actions, capsules, rng
-  fmt.println("SEED: RABL5NC2", seed)
+  fmt.println("SEED: RABL5NC2")
   set_seed("RABL5NC2")
   TPlayer = new_character()
   TEnemy = new_character()
   TPlayer.name = "P1"
   TEnemy.name = "P2"
-  register_capsule(TPlayer, get_new_capsule("attack"))
-  register_capsule(TPlayer, get_new_capsule("shield"))
-  register_capsule(TPlayer, get_new_capsule("relieve"))
-  register_capsule(TEnemy, get_new_capsule("attack"))
-  register_capsule(TEnemy, get_new_capsule("shield"))
-  register_capsule(TEnemy, get_new_capsule("relieve"))
+  new_capsule(TPlayer, "attack")
+  new_capsule(TPlayer, "shield")
+  new_capsule(TPlayer, "relieve")
+  new_capsule(TEnemy, "attack")
+  new_capsule(TEnemy, "shield")
+  new_capsule(TEnemy, "relieve")
   defer delete_character(TPlayer)
   defer delete_character(TEnemy)
   pdmg, edmg := 0, 0

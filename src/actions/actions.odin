@@ -6,7 +6,7 @@ perform_action :: proc(source, target: ^entities.Character, capsule_name: string
   using entities
 
   capsule := get_capsule_from_inventory(source, capsule_name)
-  if capsule == nil {
+  if capsule == nil || capsule.active == false {
     set_flag(&flags, .NOCAPSULE)
     return 0, flags
   }
@@ -22,7 +22,7 @@ perform_action :: proc(source, target: ^entities.Character, capsule_name: string
 
   if action == .ATTACK && .MISS not_in flags {
     // TARGET → PASSIVE CAPSULE EFFECTS HERE
-    effect_value, effect_flags = apply_passive_capsule_effects(target, source, action, initial_value)
+    effect_value, effect_flags = apply_passive_capsule_effects(target, source, .HURT, initial_value)
     initial_value = effect_value
     flags += effect_flags
 

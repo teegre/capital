@@ -3,14 +3,19 @@ package attack
 import "../../entities"
 import "../../rng"
 
-new_capsule :: proc() -> ^entities.Capsule {
+new_capsule :: proc(owner: ^entities.Character) -> bool {
   using entities
   capsule := new(Capsule)
   capsule.name = "attack"
   capsule.description = "standard attack"
   capsule.active = true
   register_use(capsule, CapsuleUse(use))
-  return capsule
+
+  if !register_capsule(owner, capsule) {
+    free(capsule)
+    return false
+  }
+  return true
 }
 
 use :: proc(source, target: ^entities.Character) -> (dmg: int, action: entities.CapsuleEventName, flags: entities.CapsuleFlags) {
