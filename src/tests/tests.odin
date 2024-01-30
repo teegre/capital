@@ -239,7 +239,8 @@ _test_memory_leak :: proc() {
 @test
 test_poison :: proc(t: ^testing.T) {
   using rng, entities, capsules, actions, testing
-  set_seed("LELPIWCW")
+  set_seed("B4PGIDQ6")
+  fmt.println("SEED:", SEED)
   TPlayer = new_character()
   TEnemy = new_character()
   TPlayer.name = "Player"
@@ -252,11 +253,20 @@ test_poison :: proc(t: ^testing.T) {
   new_capsule(TEnemy, "shield")
   pdmg, edmg: int
   pflags, eflags: CapsuleFlags
+  pdmg, pflags = perform_action(TPlayer, TEnemy, "poison")
+  fmt.println("> Player", pdmg, pflags)
   edmg, eflags = perform_action(TEnemy, TPlayer, "attack")
+  fmt.println("> Enemy", edmg, eflags)
   pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
+  fmt.println("> Player", pdmg, pflags)
   edmg, eflags = perform_action(TEnemy, TPlayer, "shield")
+  fmt.println("> Enemy", edmg, eflags)
   pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
-  expect(t, TEnemy.health == 47 && len(TEnemy.active_capsules) == 0)
+  fmt.println("> Player", pdmg, pflags)
+  edmg, eflags = perform_action(TEnemy, TPlayer, "attack")
+  fmt.println("> Enemy", edmg, eflags)
+  fmt.println(TPlayer.health, TPlayer.pain_rate, TEnemy.health, TEnemy.pain_rate)
+  expect(t, TEnemy.health == 46 && len(TEnemy.active_capsules) == 0)
 }
 
 @test

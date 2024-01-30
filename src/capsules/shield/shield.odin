@@ -23,8 +23,8 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
 use :: proc(source, target: ^entities.Character) -> (data: int, action: entities.CapsuleEventName, flags: entities.CapsuleFlags) {
   using entities
   action = .DEFEND
+  set_flag(&flags, .SHIELD)
   data = rng.roll(source.level + 5, source.defense * source.defense_mul)
   source.shield += data
   return data, action, flags
 }
-

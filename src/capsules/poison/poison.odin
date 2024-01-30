@@ -55,7 +55,7 @@ effect :: proc(source, target: ^entities.Character, action: entities.CapsuleEven
     value = 0
     detach(source, "poison")
     activate(capsule.owner, "poison")
-    set_flag(&flags, .NOEFFECT)
+    set_flag(&flags, .DETACHED)
   }
 
   return initial, flags

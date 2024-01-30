@@ -21,6 +21,7 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
 use :: proc(source, target: ^entities.Character) -> (dmg: int, action: entities.CapsuleEventName, flags: entities.CapsuleFlags) {
   using entities, rng
   action = .ATTACK
+  set_flag(&flags, .ATTACK)
 
   if success(source, target) {
     dmg = roll(source.level + 5, source.strength * source.strength_mul)

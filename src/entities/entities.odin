@@ -4,10 +4,11 @@ import "core:fmt"
 
 CapsuleFlag :: enum {
   ATTACHED,
+  ATTACK,
   BLOCKED,
   CRITICAL,
   DEAD,
-  DODGE,
+  DETACHED,
   ESCAPED,
   HEALED,
   IMMUNE,
@@ -17,6 +18,7 @@ CapsuleFlag :: enum {
   NOEFFECT,
   NOPAIN,
   OVERKILL,
+  SHIELD,
 }
 
 CapsuleEventName :: enum {

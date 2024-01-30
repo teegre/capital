@@ -48,5 +48,3 @@ new_capsule :: proc(owner: ^entities.Character, capsule_name: string) -> bool {
   assert(type_of(entry) == Entry)
   return entry(owner)
 }
-
-
