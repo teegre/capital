@@ -26,9 +26,13 @@ perform_action :: proc(source, target: ^entities.Character, capsule_name: string
     initial_value = effect_value
     flags += effect_flags
 
-    value, hurt_flags := hurt(source, target, initial_value)
+    if .NODAMAGE not_in flags {
+      value, hurt_flags := hurt(source, target, initial_value)
+      return value, flags + hurt_flags
+    } else {
+      return initial_value, flags
+    }
 
-    return value, flags + hurt_flags
   }
   value = initial_value
   return value, flags

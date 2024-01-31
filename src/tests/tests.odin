@@ -76,6 +76,7 @@ test_attack :: proc(t: ^testing.T) {
   expect(t, ok == true, "Could not register capsule!")
   expect(t, TPlayer.inventory[0].name == "attack")
   dmg, flags := perform_action(TPlayer, TEnemy, "attack")
+  fmt.println(dmg, flags)
   expect(t, TEnemy.health < 50 || .MISS in flags)
 }
 
@@ -95,6 +96,30 @@ test_shield :: proc(t: ^testing.T) {
   edmg, eflags := perform_action(TEnemy, TPlayer, "attack")
   fmt.println(edmg, eflags, TPlayer.health, TPlayer.shield)
   expect(t, TPlayer.shield == 0 && TPlayer.health == 46)
+}
+
+@test
+test_wall :: proc(t: ^testing.T) {
+  using entities, rng, capsules, actions, testing
+  set_seed("XI3XVGJY")
+  fmt.println("SEED:", SEED)
+  TPlayer = new_character()
+  TEnemy = new_character()
+  TPlayer.agility = 6
+  TPlayer.critical_rate = 100
+  TPlayer.name = "PLAYER"
+  TEnemy.name = "ENEMY"
+  TEnemy.shield = 50
+  new_capsule(TPlayer, "attack")
+  new_capsule(TEnemy, "wall")
+  edmg, eflags := perform_action(TEnemy, TEnemy, "wall")
+  fmt.println(edmg, eflags)
+  pdmg, pflags := perform_action(TPlayer, TEnemy, "attack")
+  fmt.println(pdmg, pflags)
+  expect(t, TEnemy.health == 50 && TEnemy.shield == 50)
+  pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
+  fmt.println(pdmg, pflags, TEnemy.shield)
+  expect(t, TEnemy.health == 50 && TEnemy.shield == 40)
 }
 
 @test
@@ -221,39 +246,6 @@ test_leech :: proc(t: ^testing.T) {
   detach(TEnemy, "leech")
 }
 
-_test_memory_leak :: proc() {
-  using entities, actions, capsules, rng
-  fmt.println("SEED: RABL5NC2")
-  set_seed("RABL5NC2")
-  TPlayer = new_character()
-  TEnemy = new_character()
-  TPlayer.name = "P1"
-  TEnemy.name = "P2"
-  new_capsule(TPlayer, "attack")
-  new_capsule(TPlayer, "shield")
-  new_capsule(TPlayer, "relieve")
-  new_capsule(TEnemy, "attack")
-  new_capsule(TEnemy, "shield")
-  new_capsule(TEnemy, "relieve")
-  defer delete_character(TPlayer)
-  defer delete_character(TEnemy)
-  pdmg, edmg := 0, 0
-  pflags: CapsuleFlags
-  eflags: CapsuleFlags
-  for (.DEAD not_in eflags && .DEAD not_in pflags) {
-    if TPlayer.pain_rate == 525 {
-      pdmg, pflags = perform_action(TPlayer, TEnemy, "relieve")
-    } else {
-      pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
-    }
-    if TEnemy.health == 0 {
-      break
-    }
-    edmg, eflags = perform_action(TEnemy, TPlayer, "attack")
-  }
-  fmt.println("P2 DIED!")
-}
-
 @test
 test_poison :: proc(t: ^testing.T) {
   using rng, entities, capsules, actions, testing
@@ -285,6 +277,39 @@ test_poison :: proc(t: ^testing.T) {
   fmt.println("> Enemy", edmg, eflags)
   fmt.println(TPlayer.health, TPlayer.pain_rate, TEnemy.health, TEnemy.pain_rate)
   expect(t, TEnemy.health == 46 && len(TEnemy.active_capsules) == 0)
+}
+
+_test_memory_leak :: proc() {
+  using entities, actions, capsules, rng
+  fmt.println("SEED: RABL5NC2")
+  set_seed("RABL5NC2")
+  TPlayer = new_character()
+  TEnemy = new_character()
+  TPlayer.name = "P1"
+  TEnemy.name = "P2"
+  new_capsule(TPlayer, "attack")
+  new_capsule(TPlayer, "shield")
+  new_capsule(TPlayer, "relieve")
+  new_capsule(TEnemy, "attack")
+  new_capsule(TEnemy, "shield")
+  new_capsule(TEnemy, "relieve")
+  defer delete_character(TPlayer)
+  defer delete_character(TEnemy)
+  pdmg, edmg := 0, 0
+  pflags: CapsuleFlags
+  eflags: CapsuleFlags
+  for (.DEAD not_in eflags && .DEAD not_in pflags) {
+    if TPlayer.pain_rate == 525 {
+      pdmg, pflags = perform_action(TPlayer, TEnemy, "relieve")
+    } else {
+      pdmg, pflags = perform_action(TPlayer, TEnemy, "attack")
+    }
+    if TEnemy.health == 0 {
+      break
+    }
+    edmg, eflags = perform_action(TEnemy, TPlayer, "attack")
+  }
+  fmt.println("P2 DIED!")
 }
 
 @test
