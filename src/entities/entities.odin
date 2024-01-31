@@ -217,45 +217,43 @@ character_actions :: proc(owner: ^Character) -> (action_list: [dynamic]string) {
   return action_list
 }
 
-hurt :: proc(source, target: ^Character, hit: int) -> (dmg: int, flags: CapsuleFlags) {
-  initial_dmg := hit
+hurt :: proc(source, target: ^Character, initial: int) -> (value: int, flags: CapsuleFlags) {
 
-  if target.shield == initial_dmg {
-    target.shield = 0
-    dmg = 0
+  if target.shield >= initial {
+    target.shield -= initial
     set_flag(&flags, .BLOCKED)
-  } else if target.shield > initial_dmg {
-    target.shield -= initial_dmg
-    dmg = 0
-  } else if target.shield > 0 {
-    dmg = initial_dmg - target.shield
-    target.shield -= initial_dmg
+    return 0, flags
+  }
+
+  if target.shield > 0 {
+    value = initial - target.shield
+    target.shield -= initial
     if target.shield < 0 {
       target.shield = 0
     }
   } else {
-    dmg = initial_dmg
+    value = initial
   }
 
-  target.health -= dmg
+  target.health -= value
 
   if target.health <= 0 {
     target.health = 0
     set_flag(&flags, .DEAD)
-    if dmg >= target.max_health {
+    if value >= target.max_health {
       set_flag(&flags, .OVERKILL)
     }
-    return dmg, flags
+    return value, flags
   }
 
-  target.pain += dmg
+  target.pain += value
   target.pain_rate = target.pain * 100 / target.health
 
   if target.pain_rate >= 100 {
     activate(target, "relieve")
   }
 
-  return dmg, flags
+  return value, flags
 }
 
 heal :: proc(target: ^Character, hp: int = -1) {

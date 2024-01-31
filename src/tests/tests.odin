@@ -80,6 +80,24 @@ test_attack :: proc(t: ^testing.T) {
 }
 
 @test
+test_shield :: proc(t: ^testing.T) {
+  using entities, capsules, rng, actions, testing
+  set_seed("DPPA9FIF")
+  fmt.println("SEED:", SEED)
+  TPlayer = new_character()
+  TEnemy = new_character()
+  defer delete_character(TPlayer)
+  defer delete_character(TEnemy)
+  new_capsule(TPlayer, "shield")
+  new_capsule(TEnemy, "attack")
+  pdmg, pflags := perform_action(TPlayer, TEnemy, "shield")
+  fmt.println(pdmg, pflags, TPlayer.health, TPlayer.shield)
+  edmg, eflags := perform_action(TEnemy, TPlayer, "attack")
+  fmt.println(edmg, eflags, TPlayer.health, TPlayer.shield)
+  expect(t, TPlayer.shield == 0 && TPlayer.health == 46)
+}
+
+@test
 test_no_capsule :: proc(t: ^testing.T) {
   using entities, actions, rng, testing
   seed, u_seed = new_seed()
