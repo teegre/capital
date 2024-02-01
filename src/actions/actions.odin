@@ -2,53 +2,42 @@ package actions
 
 import "../entities"
 
-perform_action :: proc(source, target: ^entities.Character, capsule_name: string) ->  (value: int, flags: entities.CapsuleFlags) {
+perform_action :: proc(source, target: ^entities.Character, capsule_name: string) ->  (response: entities.Response) {
   using entities
 
   capsule := get_capsule_from_inventory(source, capsule_name)
   if capsule == nil || capsule.active == false {
-    set_flag(&flags, .NOCAPSULE)
-    return 0, flags
+    return Response{
+      source = source,
+      target = target,
+      value = 0,
+      action = .NONE,
+      flags = {.NOCAPSULE,},
+    }
   }
 
-  initial_value: int
-  action: entities.CapsuleEventName
-  initial_value, action, flags = capsule.use(source, target)
+  response = capsule.use(source, target)
+  if .MISS in response.flags {
+    return response
+  }
 
   // SOURCE → PASSIVE CAPSULE EFFECTS HERE
-  effect_value, effect_flags := apply_passive_capsule_effects(source, target, action, initial_value)
-  initial_value = effect_value
-  flags += effect_flags
+  apply_passive_capsule_effects(&response, source)
+  // TARGET → PASSIVE CAPSULE EFFECTS HERE
+  apply_passive_capsule_effects(&response, target)
 
-  if action == .ATTACK && .MISS not_in flags {
-    // TARGET → PASSIVE CAPSULE EFFECTS HERE
-    effect_value, effect_flags = apply_passive_capsule_effects(target, source, .HURT, initial_value)
-    initial_value = effect_value
-    flags += effect_flags
-
-    if .NODAMAGE not_in flags {
-      value, hurt_flags := hurt(source, target, initial_value)
-      return value, flags + hurt_flags
-    } else {
-      return initial_value, flags
-    }
-
+  if response.action == .ATTACK {
+    hurt(&response)
+    apply_passive_capsule_effects(&response, target)
   }
-  value = initial_value
-  return value, flags
+
+  return response
 }
 
-apply_passive_capsule_effects :: proc(source, target: ^entities.Character, action: entities.CapsuleEventName, initial: int) -> (value: int, flags: entities.CapsuleFlags) {
-  initial_value := initial
-  initial_flags: entities.CapsuleFlags
-
-  for capsule in source.active_capsules {
+apply_passive_capsule_effects :: proc(message: ^entities.Response, character: ^entities.Character) {
+  for capsule in character.active_capsules {
     if capsule.effect != nil {
-       value, initial_flags = capsule.effect(source, target, action, initial_value)
-       initial_value = value
-       flags += initial_flags
+      capsule.effect(message)
     }
   }
-  value = initial_value
-  return value, flags
 }
