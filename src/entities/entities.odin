@@ -2,56 +2,60 @@ package entities
 
 import "core:fmt"
 
-CapsuleFlag :: enum {
-  ATTACHED,
-  ATTACK,
-  BLOCKED,
-  CRITICAL,
-  DEAD,
-  DETACHED,
-  ESCAPED,
-  HEALED,
-  IMMUNE,
-  MISS,
-  NOCAPSULE,
-  NODAMAGE,
-  NOEFFECT,
-  NOPAIN,
-  OVERKILL,
-  SHIELD,
+// A capsule
+Capsule :: struct {
+  name: string,
+  description: string,
+  active: bool, // if active, capsule can be listed as an action for the owner.
+  owner: ^Character,
+  default_target: CapsuleTarget, // default target may be self or other.
+  value: int, // used internally to store data.
+  use: CapsuleUse,
+  effect: CapsuleEffect,
 }
 
-CapsuleEventName :: enum {
-  ACTIVATE,
-  ATTACH,
-  ATTACK,
-  DEACTIVATE,
-  DEFEND,
-  DETACH,
-  HURT,
-  PASS,
-}
-
-
-CapsuleFlags :: distinct bit_set[CapsuleFlag]
-CapsuleUse :: #type proc(source, target: ^Character) -> (value: int, action: CapsuleEventName, flags: CapsuleFlags)
-CapsuleEffect :: #type proc(source, target: ^Character, event_name: CapsuleEventName, data: int) -> (value: int, flags: CapsuleFlags)
+CapsuleUse :: #type proc(source, target: ^Character) -> Response
+CapsuleEffect :: #type proc(message: ^Response)
 // OnAttach :: #type proc()
 // OnDetach :: #type proc()
 // OnActivate :: #type proc()
 // OnDeactivate :: #type proc()
 
-// A capsule
-Capsule :: struct {
-  name: string,
-  description: string,
-  active: bool,
-  owner: ^Character,
+Response :: struct {
+  source: ^Character,
   target: ^Character,
   value: int,
-  use: CapsuleUse,
-  effect: CapsuleEffect,
+  action: Action,
+  flags: Flags,
 }
+
+Action :: enum {
+  ATTACK,
+  DEFEND,
+  HEAL,
+  HURT,
+  NONE,
+}
+
+Flag :: enum {
+  MISS,
+  CRITICAL,
+  DEAD,
+  OVERKILL,
+  NOCAPSULE,
+  BLOCKED,
+  PARTIALBLOCK,
+  NODAMAGE,
+  NOPAIN,
+}
+
+Flags :: distinct bit_set[Flag]
+
+CapsuleTarget :: enum {
+  SELF,
+  OTHER,
+}
+
 
 // A character
 Character :: struct {
@@ -97,10 +101,10 @@ new_character :: proc() -> (c: ^Character) {
 }
 
 delete_character :: proc(character: ^Character) {
-  for capsule in character.inventory {
-    free(capsule)
-  }
   for capsule in character.active_capsules {
+    detach(character, capsule.name)
+  }
+  for capsule in character.inventory {
     free(capsule)
   }
   delete_dynamic_array(character.inventory)
@@ -132,7 +136,7 @@ register_capsule :: proc(owner: ^Character, capsule: ^Capsule) -> bool {
   return true
 }
 
-set_flag :: proc(flags: ^CapsuleFlags, flag: CapsuleFlag) {
+set_flag :: proc(flags: ^Flags, flag: Flag) {
   incl_elem(flags, flag)
 }
 
@@ -217,43 +221,35 @@ character_actions :: proc(owner: ^Character) -> (action_list: [dynamic]string) {
   return action_list
 }
 
-hurt :: proc(source, target: ^Character, initial: int) -> (value: int, flags: CapsuleFlags) {
+hurt :: proc(message: ^Response) {
 
-  if target.shield >= initial {
-    target.shield -= initial
-    set_flag(&flags, .BLOCKED)
-    return 0, flags
+  if message.value == 0 {
+    return
   }
 
-  if target.shield > 0 {
-    value = initial - target.shield
-    target.shield -= initial
-    if target.shield < 0 {
-      target.shield = 0
+  message.action = .HURT
+
+  message.target.health -= message.value
+
+  if message.target.health <= 0 {
+    message.target.health = 0
+    message.target.pain = 0
+    message.target.pain_rate = 0
+    set_flag(&message.flags, .DEAD)
+    if message.value >= message.target.max_health {
+      set_flag(&message.flags, .OVERKILL)
     }
-  } else {
-    value = initial
   }
 
-  target.health -= value
-
-  if target.health <= 0 {
-    target.health = 0
-    set_flag(&flags, .DEAD)
-    if value >= target.max_health {
-      set_flag(&flags, .OVERKILL)
-    }
-    return value, flags
+  if .NOPAIN not_in message.flags && message.target.health > 0 {
+    using message.target
+    pain += message.value
+    pain_rate = pain * 100 / health
   }
 
-  target.pain += value
-  target.pain_rate = target.pain * 100 / target.health
-
-  if target.pain_rate >= 100 {
-    activate(target, "relieve")
+  if message.target.pain_rate > 100 {
+    activate(message.target, "relieve")
   }
-
-  return value, flags
 }
 
 heal :: proc(target: ^Character, hp: int = -1) {
