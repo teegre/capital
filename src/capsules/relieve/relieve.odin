@@ -42,6 +42,7 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   }
   
   heal(source)
+  set_flag(&response.flags, .HEAL)
   source.pain = 0
   source.pain_rate = 0
   deactivate(source, "relieve")

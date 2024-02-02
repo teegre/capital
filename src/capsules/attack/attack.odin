@@ -42,5 +42,6 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
     response.value = 0
   }
 
+  response.initial_value = response.value
   return response
 }

@@ -27,8 +27,10 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
 use :: proc(source, target: ^entities.Character) -> (response: entities.Response) {
   using entities, rng
 
-  capsule := get_capsule_from_inventory(source, "shield")
-  attach(source, capsule)
+  if source.shield == 0 {
+    capsule := get_capsule_from_inventory(source, "shield")
+    attach(source, capsule)
+  }
 
   response.source = source
   response.target = source
@@ -43,7 +45,7 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
 effect :: proc(message: ^entities.Response) {
   using entities
 
-  if message.action == .ATTACK {
+  if message.action == .HURT && .NODAMAGE not_in message.flags {
     using message
     if target.shield > 0 {
       if value > target.shield {
