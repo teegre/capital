@@ -21,6 +21,20 @@ init_characters :: proc() {
 }
 
 @test
+test_berserk :: proc(t: ^testing.T) {
+  using entities, capsules, actions, rng, testing
+  set_seed("J7DTZE69")
+  fmt.println("SEED:", SEED)
+  init_characters()
+  defer delete_character(a)
+  defer delete_character(b)
+  a.critical_rate = 100
+  perform_action(a, b, "berserk")
+  response := perform_action(a, b, "attack")
+  expect(t, response.value == response.initial_value * 2)
+}
+
+@test
 test_priority :: proc(t: ^testing.T) {
   using entities, capsules, actions, rng, testing
   set_seed("JFWT9BZQ")
