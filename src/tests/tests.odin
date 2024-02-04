@@ -23,15 +23,26 @@ init_characters :: proc() {
 @test
 test_berserk :: proc(t: ^testing.T) {
   using entities, capsules, actions, rng, testing
-  set_seed("J7DTZE69")
+  // seed, _ = new_seed()
+  set_seed("0UP96JGD")
   fmt.println("SEED:", SEED)
   init_characters()
+  a.name = "A"
+  b.name = "B"
   defer delete_character(a)
   defer delete_character(b)
+  new_capsule(a, "attack")
+  new_capsule(a, "berserk")
+  new_capsule(b, "attack")
+  a.agility = 4
+  a.critical_rate = 100
+  b.agility = 5
   a.critical_rate = 100
   perform_action(a, b, "berserk")
   response := perform_action(a, b, "attack")
   expect(t, response.value == response.initial_value * 2)
+  response = perform_action(b, a, "attack")
+  expect(t, a.pain == 0 && .NOPAIN in response.flags)
 }
 
 @test

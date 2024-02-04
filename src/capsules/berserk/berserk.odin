@@ -15,9 +15,15 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
   capsule.owner = owner
   capsule.default_target = .SELF
   capsule.active = true
+  capsule.priority = .HIGHEST
 
   register_use(capsule, CapsuleUse(use))
   register_effect(capsule, CapsuleEffect(effect))
+
+  if !register_capsule(owner, capsule) {
+    free(capsule)
+    return false
+  }
 
   return true
 }
@@ -28,16 +34,26 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   response.source = source
   response.target = target
   response.action = .NONE
+  set_flag(&response.flags, .BUFF)
 
   capsule := get_capsule_from_inventory(source, "berserk")
+  if capsule == nil {
+    set_flag(&response.flags, .NOCAPSULE)
+  }
+
   attach(source, capsule)
+
   capsule.active = false
 
   return response
 }
 
 effect :: proc(message: ^entities.Response) {
+  using entities
   if message.action == .ATTACK {
     message.value *= 2
+  }
+  if message.action == .HURT {
+    set_flag(&message.flags, .NOPAIN)
   }
 }
