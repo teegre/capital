@@ -45,12 +45,16 @@ perform_action :: proc(source, target: ^entities.Character, capsule_name: string
 }
 
 apply_passive_capsule_effects :: proc(message: ^entities.Response, character: ^entities.Character) {
+  using entities
+
   to_detach: [dynamic]string
+  defer delete_dynamic_array(to_detach)
+
   for capsule in character.active_capsules {
     if capsule.effect != nil {
       capsule.effect(message)
       if .DETACH in message.flags {
-        entities.remove_flag(&message.flags, .DETACH)
+        remove_flag(&message.flags, .DETACH)
         append_elem(&to_detach, capsule.name)
       }
       if message.action == .NONE {
@@ -59,6 +63,6 @@ apply_passive_capsule_effects :: proc(message: ^entities.Response, character: ^e
     }
   }
   for capsule_name in to_detach {
-    entities.detach(character, capsule_name)
+    detach(character, capsule_name)
   }
 }
