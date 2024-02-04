@@ -33,14 +33,9 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
 
   response.source = source
   response.target = target
-  response.action = .NONE
-  set_flag(&response.flags, .BUFF)
+  response.action = .BUFF
 
   capsule := get_capsule_from_inventory(source, "berserk")
-  if capsule == nil {
-    set_flag(&response.flags, .NOCAPSULE)
-  }
-
   attach(source, capsule)
 
   capsule.active = false

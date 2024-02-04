@@ -45,6 +45,7 @@ Response :: struct {
 
 Action :: enum {
   ATTACK,
+  BUFF,
   DEFEND,
   HURT,
   NONE,
@@ -52,7 +53,6 @@ Action :: enum {
 
 Flag :: enum {
   BLOCKED,
-  BUFF,
   CRITICAL,
   DEAD,
   DETACH,
