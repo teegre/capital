@@ -8,7 +8,6 @@ import "../entities"
 import "../rng"
 import "../actions"
 
-
 a: ^entities.Character
 b: ^entities.Character
 
@@ -21,9 +20,26 @@ init_characters :: proc() {
 }
 
 @test
+test_steroids :: proc(t: ^testing.T) {
+  using entities, capsules, actions, rng, testing
+  seed, _ = new_seed()
+  set_seed(seed)
+  fmt.println("SEED:", SEED)
+  init_characters()
+  a.name = "A"
+  b.name = "B"
+  defer delete_character(a)
+  defer delete_character(b)
+  new_capsule(a, "steroids")
+  response := perform_action(a, b, "steroids")
+  expect(t, a.strength_mul == 2)
+  detach(a, "steroids")
+  expect(t, a.strength_mul == 1)
+}
+
+@test
 test_berserk :: proc(t: ^testing.T) {
   using entities, capsules, actions, rng, testing
-  // seed, _ = new_seed()
   set_seed("0UP96JGD")
   fmt.println("SEED:", SEED)
   init_characters()

@@ -8,6 +8,7 @@ import "leech"
 import "poison"
 import "wall"
 import "berserk"
+import "steroids"
 
 capsules_map := map[string]Entry{
   "attack" = attack.new_capsule,
@@ -17,6 +18,7 @@ capsules_map := map[string]Entry{
   "poison" = poison.new_capsule,
   "wall" = wall.new_capsule,
   "berserk" = berserk.new_capsule,
+  "steroids" = steroids.new_capsule,
 }
 
 capsule_list := []string{
