@@ -1,5 +1,6 @@
 package leech
 
+import "core:fmt"
 import "../../entities"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
@@ -8,9 +9,10 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
   capsule := new(Capsule)
   capsule.name = "leech"
   capsule.description = "energy drain"
+  capsule.active = true
   capsule.owner = owner
   capsule.default_target = .OTHER
-  capsule.active = true
+  capsule.priority = .LOWEST
 
   register_use(capsule, CapsuleUse(use))
   register_effect(capsule, CapsuleEffect(effect))
@@ -41,7 +43,8 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
 effect :: proc(message: ^entities.Response) {
   using entities
 
-  if message.action == .HURT {
+  if message.action == .HURT && message.value > 0 {
     heal(message.source, message.value)
+    set_flag(&message.flags, .HEAL)
   }
 }

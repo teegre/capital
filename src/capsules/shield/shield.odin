@@ -9,9 +9,10 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
   capsule := new(Capsule)
   capsule.name = "shield"
   capsule.description = "standard shield"
+  capsule.active = true
   capsule.owner = owner
   capsule.default_target = .SELF
-  capsule.active = true
+  capsule.priority = .HIGHER
 
   register_use(capsule, CapsuleUse(use))
   register_effect(capsule, CapsuleEffect(effect))
@@ -45,19 +46,27 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
 effect :: proc(message: ^entities.Response) {
   using entities
 
-  if message.action == .HURT && .NODAMAGE not_in message.flags {
+  if message.action == .HURT {
     using message
-    if target.shield > 0 {
-      if value > target.shield {
-        set_flag(&flags, .PARTIALBLOCK)
-        value -= target.shield
-        target.shield = 0
-        detach(target, "shield")
-      } else if value < target.shield {
-        set_flag(&flags, .BLOCKED)
-        target.shield -= value
-        value = 0
+
+    if .NODAMAGE not_in flags && .GUARDBREAK not_in flags {
+      if target.shield > 0 {
+        if value > target.shield {
+          set_flag(&flags, .PARTIALBLOCK)
+          value -= target.shield
+          target.shield = 0
+          set_flag(&flags, .DETACH)
+        } else if value < target.shield {
+          set_flag(&flags, .BLOCKED)
+          target.shield -= value
+          value = 0
+        }
       }
+    }
+
+    if .GUARDBREAK in flags {
+      target.shield = 0
+      set_flag(&flags, .DETACH)
     }
   }
 }

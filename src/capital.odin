@@ -3,18 +3,20 @@ package main
 import rl "vendor:raylib"
 
 main :: proc() {
-  WIDTH :: 800
-  HEIGHT :: 480
+  using rl
 
-  rl.InitWindow(WIDTH, HEIGHT, "THE VIDEO GAME!")
-  rl.SetTargetFPS(60)
+  WIDTH :: 1920/2
+  HEIGHT :: 1080/2
 
-  for !rl.WindowShouldClose() {
-    rl.BeginDrawing()
-      rl.ClearBackground(rl.WHITE)
-      rl.DrawText("PAINKILLER", 190, 200, 20, rl.LIGHTGRAY)
-    rl.EndDrawing()
+  InitWindow(WIDTH, HEIGHT, "THE VIDEO GAME!")
+  SetTargetFPS(60)
+
+  for !WindowShouldClose() {
+    BeginDrawing()
+      ClearBackground(rl.WHITE)
+      DrawText("CAPITAL", 190, 200, 20, rl.LIGHTGRAY)
+    EndDrawing()
   }
 
-  rl.CloseWindow()
+  CloseWindow()
 }

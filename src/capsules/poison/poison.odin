@@ -5,11 +5,15 @@ import "../../rng"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
   using entities
+
   capsule := new(Capsule)
   capsule.name = "poison"
   capsule.description = "slow death"
   capsule.active = true
   capsule.owner = owner
+  capsule.default_target = .OTHER
+  capsule.priority = .LOWEST
+
   register_use(capsule, CapsuleUse(use))
   register_effect(capsule, CapsuleEffect(effect))
 
@@ -17,35 +21,46 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
     free(capsule)
     return false
   }
+
   return true
 }
 
-use :: proc(source, target: ^entities.Character) -> (value: int, action: entities.CapsuleEventName, flags: entities.CapsuleFlags) {
+use :: proc(source, target: ^entities.Character) -> (response: entities.Response) {
   using entities, rng
+
   capsule := get_capsule_from_inventory(source, "poison")
   attach(target, capsule)
+
   capsule.active = false
-  set_flag(&flags, .ATTACHED)
-  value = roll(source.level + 5, source.level)
-  capsule.value = value
-  return value, .ATTACH, flags
+
+  response.source = source
+  response.target = target
+  response.action = .NONE
+  response.value = roll(source.level + 5, source.level)
+
+  capsule.value = response.value
+
+  return response
 }
 
-effect :: proc(source, target: ^entities.Character, action: entities.CapsuleEventName, initial: int) -> (value: int, flags: entities.CapsuleFlags) {
+effect :: proc(message: ^entities.Response) {
   using entities
+
+  if message.action == .HURT || message.action == .NONE {
+    return
+  }
+
+  using message
 
   capsule := get_active_capsule(source, "poison")
 
-  source.health -= capsule.value
-  source.pain += capsule.value
-  source.pain_rate = source.pain * 100 / source.health
+  flag := hurt_direct(source, capsule.value, .NOPAIN not_in flags)
 
-  if source.health <= 0 {
-    set_flag(&flags, .DEAD)
-    detach(source, "poison")
+  if flag == .DEAD {
+    set_flag(&flags, flag)
+    set_flag(&flags, .DETACH)
     activate(capsule.owner, "poison")
-    source.health = 0
-    return initial, flags
+    return
   }
 
   capsule.value -= 1
@@ -53,10 +68,7 @@ effect :: proc(source, target: ^entities.Character, action: entities.CapsuleEven
   if capsule.value <= 0 {
     capsule.value = 0
     value = 0
-    detach(source, "poison")
+    set_flag(&flags, .DETACH)
     activate(capsule.owner, "poison")
-    set_flag(&flags, .DETACHED)
   }
-
-  return initial, flags
 }
