@@ -11,6 +11,7 @@ Capsule :: struct {
   priority: Priority, // priority for effect triggering
   use: CapsuleUse, // mandatory
   effect: CapsuleEffect,  // optional
+  on_detach: CapsuleOnDetach, // optional
 }
 
 CapsuleTarget :: enum {
@@ -30,6 +31,7 @@ Priority :: enum {
 
 CapsuleUse :: #type proc(source, target: ^Character) -> Response
 CapsuleEffect :: #type proc(message: ^Response)
+CapsuleOnDetach :: #type proc(target: ^Character)
 
 // Action response
 Response :: struct {
@@ -50,6 +52,7 @@ Action :: enum {
 
 Flag :: enum {
   BLOCKED,
+  BUFF,
   CRITICAL,
   DEAD,
   DETACH,
@@ -129,6 +132,10 @@ register_use :: proc(capsule: ^Capsule, use: CapsuleUse) {
 
 register_effect :: proc(capsule: ^Capsule, effect: CapsuleEffect) {
   capsule.effect = effect
+}
+
+register_on_detach :: proc(capsule: ^Capsule, on_detach: CapsuleOnDetach) {
+  capsule.on_detach = on_detach
 }
 
 register_capsule :: proc(owner: ^Character, capsule: ^Capsule) -> bool {
@@ -220,6 +227,9 @@ detach :: proc(target: ^Character, capsule_name: string)  {
   index := -1
   for capsule, i in target.active_capsules {
     if capsule.name == capsule_name {
+      if capsule.on_detach != nil {
+        capsule.on_detach(target)
+      }
       index = i
       break
     }
