@@ -53,7 +53,7 @@ capsule_list := []string{
 
 Entry :: #type proc(owner: ^entities.Character) -> bool
 
-new_capsule :: proc(owner: ^entities.Character, capsule_name: string) -> bool {
+add_capsule_to_inventory :: proc(owner: ^entities.Character, capsule_name: string) -> bool {
   entry := capsules_map[capsule_name] or_else nil
   assert(type_of(entry) == Entry)
   return entry(owner)

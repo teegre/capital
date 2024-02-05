@@ -158,7 +158,7 @@ set_flag :: proc(flags: ^Flags, flag: Flag) {
   incl_elem(flags, flag)
 }
 
-remove_flag :: proc(flags: ^Flags, flag: Flag) {
+unset_flag :: proc(flags: ^Flags, flag: Flag) {
   excl_elem(flags, flag)
 }
 
@@ -272,7 +272,7 @@ hurt :: proc(message: ^Response) {
   }
 
   if .IGNORE in flags {
-    remove_flag(&flags, .IGNORE)
+    unset_flag(&flags, .IGNORE)
     return
   }
 

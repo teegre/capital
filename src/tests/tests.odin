@@ -27,10 +27,10 @@ test_wreckage :: proc(t: ^testing.T) {
   init_characters()
   defer delete_character(a)
   defer delete_character(b)
-  new_capsule(a, "wreckage")
-  new_capsule(a, "steroids")
-  new_capsule(b, "shield")
-  new_capsule(b, "wall")
+  add_capsule_to_inventory(a, "wreckage")
+  add_capsule_to_inventory(a, "steroids")
+  add_capsule_to_inventory(b, "shield")
+  add_capsule_to_inventory(b, "wall")
   a.strength = 4
   a.agility = 4
   b.defense = 4
@@ -57,13 +57,13 @@ test_deflector :: proc(t: ^testing.T) {
   b.agility = 4
   defer delete_character(a)
   defer delete_character(b)
-  new_capsule(a, "attack")
-  new_capsule(a, "shield")
-  new_capsule(a, "deflector")
-  new_capsule(b, "attack")
-  new_capsule(b, "shield")
-  new_capsule(b, "wall")
-  new_capsule(b, "deflector")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "shield")
+  add_capsule_to_inventory(a, "deflector")
+  add_capsule_to_inventory(b, "attack")
+  add_capsule_to_inventory(b, "shield")
+  add_capsule_to_inventory(b, "wall")
+  add_capsule_to_inventory(b, "deflector")
   fmt.println("=== SIMPLE DEFLECTOR ===")
   fmt.println("1. def a")
   perform_action(a, b, "deflector")
@@ -80,7 +80,7 @@ test_deflector :: proc(t: ^testing.T) {
   expect(t, response.value == 0)
   fmt.println("=== DOUBLE DEFLECTOR ===")
   drop(b, "wall")
-  new_capsule(b, "deflector")
+  add_capsule_to_inventory(b, "deflector")
   fmt.println("6. def a")
   perform_action(a, b, "deflector")
   fmt.println("7. def b")
@@ -103,7 +103,7 @@ test_steroids :: proc(t: ^testing.T) {
   b.name = "B"
   defer delete_character(a)
   defer delete_character(b)
-  new_capsule(a, "steroids")
+  add_capsule_to_inventory(a, "steroids")
   response := perform_action(a, b, "steroids")
   expect(t, a.strength_mul == 2)
   detach(a, "steroids")
@@ -120,9 +120,9 @@ test_berserk :: proc(t: ^testing.T) {
   b.name = "B"
   defer delete_character(a)
   defer delete_character(b)
-  new_capsule(a, "attack")
-  new_capsule(a, "berserk")
-  new_capsule(b, "attack")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "berserk")
+  add_capsule_to_inventory(b, "attack")
   a.agility = 4
   a.critical_rate = 100
   b.agility = 5
@@ -146,11 +146,11 @@ test_priority :: proc(t: ^testing.T) {
   b.name = "b"
   a.health = 48
   a.agility = 2
-  new_capsule(a, "attack")
-  new_capsule(a, "leech")
-  new_capsule(b, "attack")
-  new_capsule(b, "shield")
-  new_capsule(b, "wall")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "leech")
+  add_capsule_to_inventory(b, "attack")
+  add_capsule_to_inventory(b, "shield")
+  add_capsule_to_inventory(b, "wall")
   a_response := perform_action(a, b, "leech")
   b_response := perform_action(b, a, "shield")
   b_response = perform_action(b, a, "wall")
@@ -199,8 +199,8 @@ test_shield :: proc(t: ^testing.T) {
   init_characters()
   defer delete_character(a)
   defer delete_character(b)
-  new_capsule(a, "shield")
-  new_capsule(b, "attack")
+  add_capsule_to_inventory(a, "shield")
+  add_capsule_to_inventory(b, "attack")
   perform_action(a, b, "shield")
   perform_action(b, a, "attack")
   expect(t, a.shield == 0 && a.health == 46)
@@ -218,9 +218,9 @@ test_wall :: proc(t: ^testing.T) {
   b.defense = 10
   a.name = "PLAYER"
   b.name = "ENEMY"
-  new_capsule(a, "attack")
-  new_capsule(b, "shield")
-  new_capsule(b, "wall")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(b, "shield")
+  add_capsule_to_inventory(b, "wall")
   perform_action(b, a, "wall")
   perform_action(b, a, "shield")
   perform_action(b, a, "shield")
@@ -242,12 +242,12 @@ test_wall :: proc(t: ^testing.T) {
 //   defer delete_character(b)
 //   a.name = "P1"
 //   b.name = "P2"
-//   new_capsule(a, "attack")
-//   new_capsule(a, "shield")
-//   new_capsule(a, "relieve")
-//   new_capsule(b, "attack")
-//   new_capsule(b, "shield")
-//   new_capsule(b, "relieve")
+//   add_capsule_to_inventory(a, "attack")
+//   add_capsule_to_inventory(a, "shield")
+//   add_capsule_to_inventory(a, "relieve")
+//   add_capsule_to_inventory(b, "attack")
+//   add_capsule_to_inventory(b, "shield")
+//   add_capsule_to_inventory(b, "relieve")
 //   pdmg, edmg := 0, 0
 //   pflags: CapsuleFlags
 //   eflags: CapsuleFlags
@@ -270,9 +270,9 @@ test_wall :: proc(t: ^testing.T) {
 // test_action_list :: proc(t: ^testing.T) {
 //   using entities, capsules, testing
 //   init_characters()
-//   new_capsule(a, "attack")
-//   new_capsule(a, "shield")
-//   new_capsule(a, "relieve")
+//   add_capsule_to_inventory(a, "attack")
+//   add_capsule_to_inventory(a, "shield")
+//   add_capsule_to_inventory(a, "relieve")
 //   action_list := character_actions(a)
 //   defer delete_dynamic_array(action_list)
 //   expect(t, len(action_list) == 2 && action_list[0] == "attack" && action_list[1] == "shield")
@@ -287,9 +287,9 @@ test_leech :: proc(t: ^testing.T) {
   a.name = "Player"
   a.health = 25
   b.name = "Enemy"
-  new_capsule(a, "attack")
-  new_capsule(a, "leech")
-  new_capsule(b, "shield")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "leech")
+  add_capsule_to_inventory(b, "shield")
   defer delete_character(a)
   defer delete_character(b)
   p_response, e_response: Response
@@ -312,10 +312,10 @@ test_poison :: proc(t: ^testing.T) {
   b.name = "B"
   defer delete_character(a)
   defer delete_character(b)
-  new_capsule(a, "attack")
-  new_capsule(a, "poison")
-  new_capsule(b, "attack")
-  new_capsule(b, "shield")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "poison")
+  add_capsule_to_inventory(b, "attack")
+  add_capsule_to_inventory(b, "shield")
   fmt.println("poison a → b")
   perform_action(a, b, "poison")
   fmt.println("attack b → a")
@@ -336,12 +336,12 @@ _test_memory_leak :: proc() {
   init_characters()
   a.name = "P1"
   b.name = "P2"
-  new_capsule(a, "attack")
-  new_capsule(a, "shield")
-  new_capsule(a, "relieve")
-  new_capsule(b, "attack")
-  new_capsule(b, "shield")
-  new_capsule(b, "relieve")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "shield")
+  add_capsule_to_inventory(a, "relieve")
+  add_capsule_to_inventory(b, "attack")
+  add_capsule_to_inventory(b, "shield")
+  add_capsule_to_inventory(b, "relieve")
   defer delete_character(a)
   defer delete_character(b)
   p_response, e_response: Response
@@ -392,10 +392,10 @@ test_new_attack :: proc(t: ^testing.T) {
   b.agility = 3
   defer delete_character(a)
   defer delete_character(b)
-  new_capsule(a, "attack")
-  new_capsule(a, "shield")
-  new_capsule(b, "attack")
-  new_capsule(b, "shield")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "shield")
+  add_capsule_to_inventory(b, "attack")
+  add_capsule_to_inventory(b, "shield")
   perform_action(a, b, "shield")
   perform_action(b, a, "attack")
   perform_action(a, b, "attack")
@@ -419,12 +419,12 @@ test_relieve :: proc(t: ^testing.T) {
   defer delete_character(a)
   defer delete_character(b)
 
-  new_capsule(a, "attack")
-  new_capsule(a, "shield")
-  new_capsule(a, "relieve")
-  new_capsule(b, "attack")
-  new_capsule(b, "shield")
-  new_capsule(b, "relieve")
+  add_capsule_to_inventory(a, "attack")
+  add_capsule_to_inventory(a, "shield")
+  add_capsule_to_inventory(a, "relieve")
+  add_capsule_to_inventory(b, "attack")
+  add_capsule_to_inventory(b, "shield")
+  add_capsule_to_inventory(b, "relieve")
 
   a_response, b_response: Response
 

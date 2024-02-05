@@ -42,7 +42,7 @@ apply_passive_capsule_effects :: proc(message: ^entities.Response, character: ^e
     if capsule.effect != nil {
       capsule.effect(message)
       if .DETACH in message.flags {
-        remove_flag(&message.flags, .DETACH)
+        unset_flag(&message.flags, .DETACH)
         append_elem(&to_detach, capsule.name)
       }
       if message.action == .NONE {
