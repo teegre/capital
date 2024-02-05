@@ -7,11 +7,12 @@ Capsule :: struct {
   active: bool, // if active, capsule can be listed as an action for the owner.
   owner: ^Character,
   default_target: CapsuleTarget, // default target may be self or other.
-  value: int, // optional value used internally to hold data.
-  priority: Priority, // priority for effect triggering
-  use: CapsuleUse, // mandatory
-  effect: CapsuleEffect,  // optional
-  on_detach: CapsuleOnDetach, // optional
+  auto: bool, // if true, attached when starting a fight.
+  value: int, // optional value used internally.
+  priority: Priority, // priority for effect triggering.
+  use: CapsuleUse, // mandatory.
+  effect: CapsuleEffect,  // optional.
+  on_detach: CapsuleOnDetach, // optional.
 }
 
 CapsuleTarget :: enum {

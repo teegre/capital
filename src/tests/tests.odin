@@ -347,15 +347,11 @@ test_poison :: proc(t: ^testing.T) {
   add_capsule_to_inventory(a, "poison")
   add_capsule_to_inventory(b, "attack")
   add_capsule_to_inventory(b, "shield")
-  fmt.println("poison a → b")
+
   perform_action(a, b, "poison")
-  fmt.println("attack b → a")
   perform_action(b, a, "attack")
-  fmt.println("shield b")
   perform_action(b, a, "shield")
-  fmt.println("attack b → a")
-  response := perform_action(b, a, "attack")
-  fmt.println(response)
+  perform_action(b, a, "attack")
   capsule := get_active_capsule(b, "poison")
   expect(t, b.health == 47 && capsule == nil)
 }

@@ -53,9 +53,11 @@ effect :: proc(message: ^entities.Response) {
 
   if message.action == .HURT && message.value > 0 {
     using message
+
     if source.shield == 0 {
       set_flag(&flags, .PROTECT)
     }
+
     set_flag(&flags, .DETACH)
     source.shield += value
   }
