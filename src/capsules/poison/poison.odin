@@ -68,7 +68,7 @@ effect :: proc(message: ^entities.Response) {
   if capsule.value <= 0 {
     capsule.value = 0
     value = 0
+    capsule.active = true
     set_flag(&flags, .DETACH)
-    activate(capsule.owner, "poison")
   }
 }
