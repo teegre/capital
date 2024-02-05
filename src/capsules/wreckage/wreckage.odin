@@ -1,20 +1,28 @@
-package attack
+package wreckage
 
 import "../../entities"
 import "../../rng"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
+  if len(owner.inventory) == owner.max_items {
+    return false
+  }
+
   using entities
+
   capsule := new(Capsule)
-  capsule.name = "attack"
-  capsule.description = "standard attack"
+  capsule.name = "wreckage"
+  capsule.description = "break it!"
   capsule.owner = owner
   capsule.default_target = .OTHER
   capsule.active = true
 
   register_use(capsule, CapsuleUse(use))
 
-  register_capsule(owner, capsule)
+  if !register_capsule(owner, capsule) {
+    free(capsule)
+    return false
+  }
 
   return true
 }
@@ -32,6 +40,7 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
       set_flag(&response.flags, .CRITICAL)
       response.value *= 2
     }
+    set_flag(&response.flags, .GUARDBREAK)
   } else {
     set_flag(&response.flags, .MISS)
     response.value = 0

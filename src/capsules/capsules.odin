@@ -10,6 +10,7 @@ import "wall"
 import "berserk"
 import "steroids"
 import "deflector"
+import "wreckage"
 
 capsules_map := map[string]Entry{
   "attack" = attack.new_capsule,
@@ -21,32 +22,33 @@ capsules_map := map[string]Entry{
   "berserk" = berserk.new_capsule,
   "steroids" = steroids.new_capsule,
   "deflector" = deflector.new_capsule,
+  "wreckage" = wreckage.new_capsule,
 }
 
 capsule_list := []string{
   "autoshield",
-  "berserk",
+  "berserk", // OK
   "charity",
-  "deflector",
+  "deflector", // OK
   "embrace",
   "empathy",
   "endure",
   "escape",
   "fury",
-  "leech",
+  "leech", // OK
   "morphine",
   "painkiller",
   "paralysis",
   "pass",
   "pinch",
-  "poison",
+  "poison", // OK
   "prudence",
   "sacrifice",
   "shell",
-  "steroids",
+  "steroids", // OK
   "timebomb",
-  "wall",
-  "wreckage",
+  "wall", // OK
+  "wreckage", // OK
 }
 
 Entry :: #type proc(owner: ^entities.Character) -> bool

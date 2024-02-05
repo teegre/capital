@@ -20,9 +20,34 @@ init_characters :: proc() {
 }
 
 @test
+test_wreckage :: proc(t: ^testing.T) {
+  using entities, capsules, actions, rng, testing
+  set_seed("JWLMRXSP")
+  fmt.println("SEED:", SEED)
+  init_characters()
+  defer delete_character(a)
+  defer delete_character(b)
+  new_capsule(a, "wreckage")
+  new_capsule(a, "steroids")
+  new_capsule(b, "shield")
+  new_capsule(b, "wall")
+  a.strength = 4
+  a.agility = 4
+  b.defense = 4
+  b.defense_mul = 2
+  perform_action(a, b, "steroids")
+  perform_action(b, a, "shield")
+  perform_action(a, b, "wreckage")
+  expect(t, b.health == 27 && b.shield == 0)
+  perform_action(b, a, "wall")
+  perform_action(b, a, "shield")
+  perform_action(a, b, "wreckage")
+  expect(t, b.health == 27 && b.shield == 21)
+}
+
+@test
 test_deflector :: proc(t: ^testing.T) {
   using entities, capsules, actions, rng, testing
-  // seed, _ = new_seed()
   set_seed("2ETWPAMO")
   fmt.println("SEED:", SEED)
   init_characters()
