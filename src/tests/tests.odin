@@ -20,6 +20,54 @@ init_characters :: proc() {
 }
 
 @test
+test_deflector :: proc(t: ^testing.T) {
+  using entities, capsules, actions, rng, testing
+  // seed, _ = new_seed()
+  set_seed("2ETWPAMO")
+  fmt.println("SEED:", SEED)
+  init_characters()
+  a.name = "A"
+  b.name = "B"
+  a.agility = 3
+  b.agility = 4
+  defer delete_character(a)
+  defer delete_character(b)
+  new_capsule(a, "attack")
+  new_capsule(a, "shield")
+  new_capsule(a, "deflector")
+  new_capsule(b, "attack")
+  new_capsule(b, "shield")
+  new_capsule(b, "wall")
+  new_capsule(b, "deflector")
+  fmt.println("=== SIMPLE DEFLECTOR ===")
+  fmt.println("1. def a")
+  perform_action(a, b, "deflector")
+  fmt.println("2. att b → a")
+  perform_action(b, a, "attack")
+  expect(t, b.health == 45)
+  fmt.println("=== DEFLECTOR + WALL ===")
+  fmt.println("3. def a")
+  perform_action(a, b, "deflector")
+  fmt.println("4. wal b")
+  perform_action(b, a, "wall")
+  fmt.println("5. att b → a")
+  response := perform_action(b, a, "attack")
+  expect(t, response.value == 0)
+  fmt.println("=== DOUBLE DEFLECTOR ===")
+  drop(b, "wall")
+  new_capsule(b, "deflector")
+  fmt.println("6. def a")
+  perform_action(a, b, "deflector")
+  fmt.println("7. def b")
+  perform_action(b, a, "deflector")
+  fmt.println("8. shi a")
+  perform_action(a, b, "shield")
+  fmt.println("9. att a → b")
+  perform_action(a, b, "attack")
+  expect(t, a.health == 50)
+}
+
+@test
 test_steroids :: proc(t: ^testing.T) {
   using entities, capsules, actions, rng, testing
   seed, _ = new_seed()

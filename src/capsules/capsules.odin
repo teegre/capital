@@ -9,6 +9,7 @@ import "poison"
 import "wall"
 import "berserk"
 import "steroids"
+import "deflector"
 
 capsules_map := map[string]Entry{
   "attack" = attack.new_capsule,
@@ -19,6 +20,7 @@ capsules_map := map[string]Entry{
   "wall" = wall.new_capsule,
   "berserk" = berserk.new_capsule,
   "steroids" = steroids.new_capsule,
+  "deflector" = deflector.new_capsule,
 }
 
 capsule_list := []string{

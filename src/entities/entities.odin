@@ -64,6 +64,7 @@ Flag :: enum {
   NOCAPSULE,
   NODAMAGE,
   NOPAIN,
+  IGNORE,
   OVERKILL,
   PARTIALBLOCK,
 }
@@ -88,7 +89,7 @@ Character :: struct {
   defense_mul: int,
   max_items: int,
   immunity: [dynamic]string,
-  active_capsules: [dynamic]^Capsule,
+  active_capsules: [dynamic]^Capsule, // NOTE: why not using a map?
   inventory: [dynamic]^Capsule,
 }
 
@@ -267,6 +268,11 @@ hurt :: proc(message: ^Response) {
   using message
 
   if value == 0 {
+    return
+  }
+
+  if .IGNORE in flags {
+    remove_flag(&flags, .IGNORE)
     return
   }
 
