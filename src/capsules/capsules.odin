@@ -11,6 +11,7 @@ import "berserk"
 import "steroids"
 import "deflector"
 import "wreckage"
+import "prudence"
 
 capsules_map := map[string]Entry{
   "attack" = attack.new_capsule,
@@ -23,6 +24,7 @@ capsules_map := map[string]Entry{
   "steroids" = steroids.new_capsule,
   "deflector" = deflector.new_capsule,
   "wreckage" = wreckage.new_capsule,
+  "prudence" = prudence.new_capsule,
 }
 
 capsule_list := []string{
@@ -42,7 +44,7 @@ capsule_list := []string{
   "pass",
   "pinch",
   "poison", // OK
-  "prudence",
+  "prudence", // OK
   "sacrifice",
   "shell",
   "steroids", // OK

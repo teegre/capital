@@ -1,4 +1,4 @@
-package attack
+package prudence
 
 import "../../entities"
 import "../../rng"
@@ -7,13 +7,15 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
   using entities
 
   capsule := new(Capsule)
-  capsule.name = "attack"
-  capsule.description = "standard attack"
+  capsule.name = "prudence"
+  capsule.description = "the best form of defence"
   capsule.owner = owner
   capsule.default_target = .OTHER
   capsule.active = true
+  capsule.priority = .LOWEST
 
   register_use(capsule, CapsuleUse(use))
+  register_effect(capsule, CapsuleEffect(effect))
 
   register_capsule(owner, capsule)
 
@@ -33,6 +35,10 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
       set_flag(&response.flags, .CRITICAL)
       response.value *= 2
     }
+    if !is_attached(target, "prudence") {
+      capsule := get_capsule_from_inventory(source, "prudence")
+      attach(target, capsule)
+    }    
   } else {
     set_flag(&response.flags, .MISS)
     response.value = 0
@@ -40,4 +46,17 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
 
   response.initial_value = response.value
   return response
+}
+
+effect :: proc(message: ^entities.Response) {
+  using entities
+
+  if message.action == .HURT && message.value > 0 {
+    using message
+    if source.shield == 0 {
+      set_flag(&flags, .PROTECT)
+    }
+    set_flag(&flags, .DETACH)
+    source.shield += value
+  }
 }

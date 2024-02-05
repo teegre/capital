@@ -55,10 +55,10 @@ Flag :: enum {
   BLOCKED,
   CRITICAL,
   DEAD,
-  DETACH,
-  DIRECT,
-  END,
-  GUARDBREAK,
+  DETACH, // capsule has to be detached
+  DIRECT, // direct damage ignoring shields
+  END, // not used yet
+  GUARDBREAK, // ignore shield
   HEAL,
   MISS,
   NOCAPSULE,
@@ -67,6 +67,7 @@ Flag :: enum {
   IGNORE,
   OVERKILL,
   PARTIALBLOCK,
+  PROTECT,
 }
 
 Flags :: distinct bit_set[Flag]
@@ -222,6 +223,16 @@ attach :: proc(target: ^Character, capsule: ^Capsule) {
       return
     }
   }
+}
+
+is_attached :: proc(target: ^Character, capsule_name: string) -> bool {
+  for capsule in target.active_capsules {
+    if capsule.name == capsule_name {
+      return true
+    }
+  }
+
+  return false
 }
 
 detach :: proc(target: ^Character, capsule_name: string)  {

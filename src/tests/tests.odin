@@ -20,6 +20,37 @@ init_characters :: proc() {
 }
 
 @test
+test_prudence :: proc(t: ^testing.T) {
+  using entities, capsules, actions, rng, testing
+  set_seed("WP64NLOE")
+  fmt.println("SEED:", SEED)
+  init_characters()
+  defer delete_character(a)
+  defer delete_character(b)
+
+  a.name = "A"
+  b.name = "B"
+  a.agility = 4
+  add_capsule_to_inventory(a, "prudence")
+  add_capsule_to_inventory(a, "shield")
+  add_capsule_to_inventory(b, "wall")
+
+  fmt.println("b wall")
+  perform_action(b, a, "wall")
+  response := perform_action(a, b, "prudence")
+  fmt.println("Damage =", response.value, "Shield = ", a.shield)
+  expect(t, .NODAMAGE in response.flags && a.shield == 0)
+  fmt.println("a → b prudence")
+  response = perform_action(a, b, "prudence")
+  fmt.println("Damage =", response.value, "Shield = ", a.shield)
+  expect(t, a.shield == response.value)
+  fmt.println("a → b prudence")
+  response = perform_action(a, b, "prudence")
+  fmt.println("Damage =", response.value, "Shield = ", a.shield)
+  expect(t, a.shield > response.value)
+}
+
+@test
 test_wreckage :: proc(t: ^testing.T) {
   using entities, capsules, actions, rng, testing
   set_seed("JWLMRXSP")
