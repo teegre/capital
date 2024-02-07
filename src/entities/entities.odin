@@ -157,11 +157,11 @@ register_capsule :: proc(owner: ^Character, capsule: ^Capsule) -> bool {
 }
 
 set_flag :: proc(flags: ^Flags, flag: Flag) {
-  incl_elem(flags, flag)
+  flags^ += {flag}
 }
 
 unset_flag :: proc(flags: ^Flags, flag: Flag) {
-  excl_elem(flags, flag)
+  flags^ -= {flag}
 }
 
 get_capsule_from_inventory :: proc(owner: ^Character, capsule_name: string) -> ^Capsule {
