@@ -7,7 +7,7 @@ player: rl.Texture2D
 tree: rl.Texture2D
 player_src: rl.Rectangle
 player_dest: rl.Rectangle
-player_speed: f32 = 3
+player_speed: f32 = 3.5
 player_direction: int = 0
 player_frame: int = 0
 player_moving: bool = false
@@ -21,9 +21,6 @@ frame_count: int = 0
 WIDTH :: 1920/2
 HEIGHT :: 1080/2
 
-
-
-// input :: proc()
 init :: proc() {
   rl.InitWindow(WIDTH, HEIGHT, "YAY!")
   rl.SetTargetFPS(60)
@@ -31,16 +28,18 @@ init :: proc() {
   player = rl.LoadTexture("resources/virginie.png")
   tree = rl.LoadTexture("resources/tree.png")
   player_src = {0, 0, 16, 16,}
-  player_dest = {WIDTH/2, HEIGHT/2, 48, 48}
+  player_dest = {WIDTH/2, HEIGHT/2, 32, 32}
   tree_src = {0, 0, 16, 16}
-  tree_dest = {WIDTH/2, HEIGHT/2, 48, 48}
+  tree_dest = {WIDTH/2, HEIGHT/2, 32, 32}
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
   camera.target = rl.Vector2{player_dest.x - (player_dest.width / 2), player_dest.y - (player_dest.height / 2)}
   camera.rotation = 0.0
-  camera.zoom = 1.0
+  camera.zoom = 1.5
 }
 
 update :: proc() {
+  player_src.y = player_src.width * f32(player_direction)
+
   if player_moving {
     switch player_direction {
     case 2:
@@ -53,18 +52,11 @@ update :: proc() {
       player_dest.y += player_speed
     }
 
-    if frame_count % 8 == 1 {
-      player_frame += 1
-    }
-    
     player_src.y = player_src.width * f32(player_direction + 1)
+  }
 
-  } else {
-    player_src.y = player_src.width * f32(player_direction)
-
-    if frame_count % 12 == 1 {
-      player_frame += 1
-    }
+  if frame_count % 6 == 1 {
+    player_frame += 1
   }
 
   frame_count += 1
@@ -83,7 +75,7 @@ update :: proc() {
 
 render :: proc() {
   rl.BeginDrawing()
-    rl.ClearBackground(rl.DARKGRAY)
+    rl.ClearBackground(rl.BROWN)
     rl.BeginMode2D(camera)
       draw()
     rl.EndMode2D()
