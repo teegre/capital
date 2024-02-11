@@ -37,10 +37,10 @@ CapsuleOnDetach :: #type proc(target: ^Character)
 // Action response
 Response :: struct {
   source: ^Character,
+  action: Action,
   target: ^Character,
   initial_value: int,
   value: int,
-  action: Action,
   flags: Flags,
 }
 
@@ -59,12 +59,13 @@ Flag :: enum {
   DETACH, // capsule has to be detached
   DIRECT, // direct damage ignoring shields
   END, // not used yet
-  GUARDBREAK, // ignore shield
+  GUARDBREAK, // nullify shield
   HEAL,
   MISS,
-  NOCAPSULE,
+  NOCAPSULE, // ??? is it relevant?
   NODAMAGE,
   NOPAIN,
+  NUMB, // character cannot move
   IGNORE,
   OVERKILL,
   PARTIALBLOCK,
@@ -79,6 +80,7 @@ Character :: struct {
   level: int,
   health: int,
   pain: int,
+  pain_mul: int,
   pain_rate: int,
   shield: int,
   max_health: int,

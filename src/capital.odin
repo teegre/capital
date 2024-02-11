@@ -1,40 +1,42 @@
 package main
 
 import rl "vendor:raylib"
+import "room"
 
 running := true
 player: rl.Texture2D
-tree: rl.Texture2D
+tree, wall, floor, door: rl.Texture2D
 player_src: rl.Rectangle
 player_dest: rl.Rectangle
-player_speed: f32 = 3.5
+player_speed: f32 = 2
 player_direction: int = 0
 player_frame: int = 0
 player_moving: bool = false
-tree_src: rl.Rectangle
-tree_dest: rl.Rectangle
 
 camera: rl.Camera2D
 
 frame_count: int = 0
 
-WIDTH :: 1920/2
-HEIGHT :: 1080/2
+WIDTH :: 960
+HEIGHT :: 540
 
 init :: proc() {
   rl.InitWindow(WIDTH, HEIGHT, "YAY!")
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
-  player = rl.LoadTexture("resources/virginie.png")
-  tree = rl.LoadTexture("resources/tree.png")
+
+  player = rl.LoadTexture("resources/irene.png")
+  wall = rl.LoadTexture("resources/walls.png")
+  floor = rl.LoadTexture("resources/floors.png")
+  door = rl.LoadTexture("resources/doors.png")
+
   player_src = {0, 0, 16, 16,}
-  player_dest = {WIDTH/2, HEIGHT/2, 32, 32}
-  tree_src = {0, 0, 16, 16}
-  tree_dest = {WIDTH/2, HEIGHT/2, 32, 32}
+  player_dest = {(WIDTH-16)/2, (HEIGHT-16)/2, 16, 16}
+
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
   camera.target = rl.Vector2{player_dest.x - (player_dest.width / 2), player_dest.y - (player_dest.height / 2)}
   camera.rotation = 0.0
-  camera.zoom = 1.5
+  camera.zoom = 3.0
 }
 
 update :: proc() {
@@ -83,9 +85,8 @@ render :: proc() {
 }
 
 draw :: proc() {
-  origin: rl.Vector2 = {tree_dest.width, tree_dest.height}
-  rl.DrawTexturePro(tree, tree_src, tree_dest, origin, 0, rl.WHITE)
-  origin = {player_dest.width, player_dest.height}
+  room.draw_room(wall, floor, door, WIDTH, HEIGHT, 7, 5, 16)
+  origin: rl.Vector2 = {player_dest.width, player_dest.height}
   rl.DrawTexturePro(player, player_src, player_dest, origin, 0, rl.WHITE)
 }
 
