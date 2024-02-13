@@ -77,7 +77,7 @@ update :: proc() {
 
 render :: proc() {
   rl.BeginDrawing()
-    rl.ClearBackground(rl.BROWN)
+    rl.ClearBackground(rl.DARKGRAY)
     rl.BeginMode2D(camera)
       draw()
     rl.EndMode2D()
@@ -85,7 +85,7 @@ render :: proc() {
 }
 
 draw :: proc() {
-  room.draw_room(wall, floor, door, WIDTH, HEIGHT, 7, 5, 16)
+  room.draw_room(wall, floor, door, WIDTH, HEIGHT, 7, 7, 16)
   origin: rl.Vector2 = {player_dest.width, player_dest.height}
   rl.DrawTexturePro(player, player_src, player_dest, origin, 0, rl.WHITE)
 }
