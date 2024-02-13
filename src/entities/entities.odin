@@ -1,5 +1,7 @@
 package entities
 
+import rl "vendor:raylib"
+
 // A capsule
 Capsule :: struct {
   name: string,
@@ -13,6 +15,54 @@ Capsule :: struct {
   use: CapsuleUse, // mandatory.
   effect: CapsuleEffect,  // optional.
   on_detach: CapsuleOnDetach, // optional.
+  texture: rl.Texture2D,
+  position: rl.Vector2,
+  hitbox: rl.Rectangle,
+}
+
+// A character
+Character :: struct {
+  name: string,
+  level: int,
+  health: int,
+  pain: int,
+  pain_mul: int,
+  pain_rate: int,
+  shield: int,
+  max_health: int,
+  healing: int,
+  critical_rate: int,
+  strength: int,
+  defense: int,
+  agility: int,
+  strength_mul: int,
+  defense_mul: int,
+  max_items: int,
+  immunity: [dynamic]string,
+  active_capsules: [dynamic]^Capsule, // NOTE: why not using a map?
+  inventory: [dynamic]^Capsule,
+}
+
+// The player
+Player :: struct {
+  character: ^Character,
+  texture: rl.Texture2D,
+  position: rl.Vector2,
+  hitbox: rl.Rectangle,
+  orientation: u8,
+}
+
+// make_player :: proc(name: string) -> ^Player {
+// }
+
+// A room
+Room :: struct {
+  room: rl.Rectangle, // full room.
+  area: rl.Rectangle, // living area.
+  entrance_hitbox: rl.Rectangle,
+  exit_hitbox: rl.Rectangle,
+  entrance_locked: bool,
+  exit_locked: bool,
 }
 
 CapsuleTarget :: enum {
@@ -74,28 +124,7 @@ Flag :: enum {
 
 Flags :: distinct bit_set[Flag]
 
-// A character
-Character :: struct {
-  name: string,
-  level: int,
-  health: int,
-  pain: int,
-  pain_mul: int,
-  pain_rate: int,
-  shield: int,
-  max_health: int,
-  healing: int,
-  critical_rate: int,
-  strength: int,
-  defense: int,
-  agility: int,
-  strength_mul: int,
-  defense_mul: int,
-  max_items: int,
-  immunity: [dynamic]string,
-  active_capsules: [dynamic]^Capsule, // NOTE: why not using a map?
-  inventory: [dynamic]^Capsule,
-}
+// TODO: COMBAT GROUP (Player(s) + Enemy(ies).
 
 new_character :: proc() -> (c: ^Character) {
   c = new(Character)

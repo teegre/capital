@@ -1,11 +1,13 @@
 package main
 
 import rl "vendor:raylib"
+import "entities"
 import "room"
 
 running := true
 player: rl.Texture2D
 tree, wall, floor, door: rl.Texture2D
+main_room: ^entities.Room
 player_src: rl.Rectangle
 player_dest: rl.Rectangle
 player_speed: f32 = 2
@@ -21,6 +23,7 @@ WIDTH :: 960
 HEIGHT :: 540
 
 init :: proc() {
+
   rl.InitWindow(WIDTH, HEIGHT, "YAY!")
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
@@ -30,8 +33,10 @@ init :: proc() {
   floor = rl.LoadTexture("resources/floors.png")
   door = rl.LoadTexture("resources/doors.png")
 
+  main_room = room.make_room(WIDTH, HEIGHT, 7, 7, 16)
+
   player_src = {0, 0, 16, 16,}
-  player_dest = {(WIDTH-16)/2, (HEIGHT-16)/2, 16, 16}
+  player_dest = {WIDTH/2+8, HEIGHT/2+8, 16, 16}
 
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
   camera.target = rl.Vector2{player_dest.x - (player_dest.width / 2), player_dest.y - (player_dest.height / 2)}
@@ -52,6 +57,19 @@ update :: proc() {
       player_dest.x -= player_speed
     case 0:
       player_dest.y += player_speed
+    }
+
+    if player_dest.x < player_dest.width {
+      player_dest.x = player_dest.width
+    }
+    if player_dest.x > WIDTH {
+      player_dest.x = WIDTH
+    }
+    if player_dest.y < player_dest.height / 2 {
+      player_dest.y = player_dest.height / 2
+    }
+    if player_dest.y > HEIGHT {
+      player_dest.y = HEIGHT
     }
 
     player_src.y = player_src.width * f32(player_direction + 1)
@@ -85,7 +103,27 @@ render :: proc() {
 }
 
 draw :: proc() {
-  room.draw_room(wall, floor, door, WIDTH, HEIGHT, 7, 7, 16)
+  rl.DrawRectangleLines(0, 0, WIDTH, HEIGHT, rl.BLACK)
+  room.draw_room(wall, floor, door, main_room, 16)
+  rl.DrawCircle(WIDTH/2, HEIGHT/2, 8, rl.SKYBLUE)
+  rl.DrawRectangleLines(
+    i32(main_room.room.x),
+    i32(main_room.room.y),
+    i32(main_room.room.width),
+    i32(main_room.room.height),
+    rl.RED)
+  rl.DrawRectangleLines(
+    i32(main_room.entrance_hitbox.x),
+    i32(main_room.entrance_hitbox.y),
+    i32(main_room.entrance_hitbox.width),
+    i32(main_room.entrance_hitbox.height),
+    rl.GREEN)
+  rl.DrawRectangleLines(
+    i32(main_room.area.x),
+    i32(main_room.area.y),
+    i32(main_room.area.width),
+    i32(main_room.area.height),
+    rl.YELLOW)
   origin: rl.Vector2 = {player_dest.width, player_dest.height}
   rl.DrawTexturePro(player, player_src, player_dest, origin, 0, rl.WHITE)
 }
@@ -112,6 +150,7 @@ input :: proc() {
 
 quit :: proc() {
   rl.UnloadTexture(player)
+  free(main_room)
   rl.CloseWindow()
 }
 
