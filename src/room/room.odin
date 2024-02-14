@@ -19,7 +19,7 @@ make_room :: proc(screen_w, screen_h, w, h, tile_size: f32) -> ^entities.Room {
       width - (tile_size * 2),
       height - (tile_size * 2),
     }
-    room.entrance_hitbox = Rectangle{
+    room.entrance = Rectangle{
       room.room.x + (width / 2) - (tile_size / 2),
       room.room.y + height - (tile_size * 1.5),
       tile_size,

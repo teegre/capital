@@ -45,7 +45,7 @@ Character :: struct {
 
 // The player
 Player :: struct {
-  character: ^Character,
+  using character: Character,
   texture: rl.Texture2D,
   position: rl.Vector2,
   hitbox: rl.Rectangle,
@@ -57,10 +57,11 @@ Player :: struct {
 
 // A room
 Room :: struct {
+  texture: rl.Texture2D,
   room: rl.Rectangle, // full room.
   area: rl.Rectangle, // living area.
-  entrance_hitbox: rl.Rectangle,
-  exit_hitbox: rl.Rectangle,
+  entrance: rl.Rectangle,
+  exit: rl.Rectangle,
   entrance_locked: bool,
   exit_locked: bool,
 }
@@ -332,7 +333,7 @@ hurt :: proc(message: ^Response) {
   }
 
   if .NOPAIN not_in flags && target.health > 0 {
-    target.pain += value
+    target.pain += value * target.pain_mul
     target.pain_rate = target.pain * 100 / target.health
   }
 
@@ -349,7 +350,7 @@ hurt_direct :: proc(target: ^Character, dmg: int, pain: bool = true) -> Flag {
   target.health -= dmg
 
   if pain {
-    target.pain += dmg
+    target.pain += dmg * target.pain_mul
     target.pain_rate = target.pain * 100 / target.health
   }
 

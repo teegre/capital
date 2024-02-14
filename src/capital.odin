@@ -10,12 +10,14 @@ tree, wall, floor, door: rl.Texture2D
 main_room: ^entities.Room
 player_src: rl.Rectangle
 player_dest: rl.Rectangle
-player_speed: f32 = 2
+player_speed: f32 = 1
 player_direction: int = 0
 player_frame: int = 0
 player_moving: bool = false
 
 camera: rl.Camera2D
+
+TILE_SIZE :: 16
 
 frame_count: int = 0
 
@@ -28,15 +30,15 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  player = rl.LoadTexture("resources/irene.png")
+  player = rl.LoadTexture("resources/virginie.png")
   wall = rl.LoadTexture("resources/walls.png")
   floor = rl.LoadTexture("resources/floors.png")
   door = rl.LoadTexture("resources/doors.png")
 
-  main_room = room.make_room(WIDTH, HEIGHT, 7, 7, 16)
+  main_room = room.make_room(WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
-  player_src = {0, 0, 16, 16,}
-  player_dest = {WIDTH/2+8, HEIGHT/2+8, 16, 16}
+  player_src = {0, 0, TILE_SIZE, TILE_SIZE,}
+  player_dest = {WIDTH/2+8, HEIGHT/2+8, TILE_SIZE, TILE_SIZE}
 
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
   camera.target = rl.Vector2{player_dest.x - (player_dest.width / 2), player_dest.y - (player_dest.height / 2)}
@@ -59,17 +61,17 @@ update :: proc() {
       player_dest.y += player_speed
     }
 
-    if player_dest.x < player_dest.width {
-      player_dest.x = player_dest.width
+    if player_dest.x < player_dest.width + 4 {
+      player_dest.x = player_dest.width + 4
     }
-    if player_dest.x > WIDTH {
-      player_dest.x = WIDTH
+    if player_dest.x > WIDTH - 4 {
+      player_dest.x = WIDTH - 4
     }
-    if player_dest.y < player_dest.height / 2 {
-      player_dest.y = player_dest.height / 2
+    if player_dest.y < player_dest.height - 4 {
+      player_dest.y = player_dest.height - 4
     }
-    if player_dest.y > HEIGHT {
-      player_dest.y = HEIGHT
+    if player_dest.y > HEIGHT - 4 {
+      player_dest.y = HEIGHT - 4
     }
 
     player_src.y = player_src.width * f32(player_direction + 1)
@@ -95,7 +97,7 @@ update :: proc() {
 
 render :: proc() {
   rl.BeginDrawing()
-    rl.ClearBackground(rl.DARKGRAY)
+    rl.ClearBackground(rl.BLACK)
     rl.BeginMode2D(camera)
       draw()
     rl.EndMode2D()
@@ -103,27 +105,28 @@ render :: proc() {
 }
 
 draw :: proc() {
-  rl.DrawRectangleLines(0, 0, WIDTH, HEIGHT, rl.BLACK)
-  room.draw_room(wall, floor, door, main_room, 16)
-  rl.DrawCircle(WIDTH/2, HEIGHT/2, 8, rl.SKYBLUE)
-  rl.DrawRectangleLines(
-    i32(main_room.room.x),
-    i32(main_room.room.y),
-    i32(main_room.room.width),
-    i32(main_room.room.height),
-    rl.RED)
-  rl.DrawRectangleLines(
-    i32(main_room.entrance_hitbox.x),
-    i32(main_room.entrance_hitbox.y),
-    i32(main_room.entrance_hitbox.width),
-    i32(main_room.entrance_hitbox.height),
-    rl.GREEN)
-  rl.DrawRectangleLines(
-    i32(main_room.area.x),
-    i32(main_room.area.y),
-    i32(main_room.area.width),
-    i32(main_room.area.height),
-    rl.YELLOW)
+  rl.DrawRectangleLines(0, 0, WIDTH, HEIGHT, rl.RED)
+  room.draw_room(wall, floor, door, main_room, TILE_SIZE)
+  // DEBUG
+  // rl.DrawCircle(WIDTH/2, HEIGHT/2, 8, rl.SKYBLUE)
+  // rl.DrawRectangleLines(
+  //   i32(main_room.room.x),
+  //   i32(main_room.room.y),
+  //   i32(main_room.room.width),
+  //   i32(main_room.room.height),
+  //   rl.RED)
+  // rl.DrawRectangleLines(
+  //   i32(main_room.entrance.x),
+  //   i32(main_room.entrance.y),
+  //   i32(main_room.entrance.width),
+  //   i32(main_room.entrance.height),
+  //   rl.GREEN)
+  // rl.DrawRectangleLines(
+  //   i32(main_room.area.x),
+  //   i32(main_room.area.y),
+  //   i32(main_room.area.width),
+  //   i32(main_room.area.height),
+  //   rl.YELLOW)
   origin: rl.Vector2 = {player_dest.width, player_dest.height}
   rl.DrawTexturePro(player, player_src, player_dest, origin, 0, rl.WHITE)
 }

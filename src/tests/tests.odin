@@ -3,6 +3,7 @@ package tests
 import "core:testing"
 import "core:mem"
 import "core:fmt"
+import rl "vendor:raylib"
 import "../capsules"
 import "../entities"
 import "../rng"
@@ -17,6 +18,15 @@ u_seed: u64
 init_characters :: proc() {
   a = entities.new_character()
   b = entities.new_character()
+}
+
+@test
+test_player :: proc(t: ^testing.T) {
+  using entities, testing
+  player := new(Player)
+  defer free(player)
+  player.name = "Player"
+  expect(t, player.name == "Player")
 }
 
 @test
