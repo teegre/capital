@@ -47,9 +47,12 @@ Character :: struct {
 Player :: struct {
   using character: Character,
   texture: rl.Texture2D,
-  position: rl.Vector2,
-  hitbox: rl.Rectangle,
-  orientation: u8,
+  speed: f32,
+  frame: int,
+  moving: bool,
+  src: rl.Rectangle, // spritesheet
+  dest: rl.Rectangle, // screen (use this for player pos and hitbox)
+  direction: u8,
 }
 
 // make_player :: proc(name: string) -> ^Player {
@@ -146,6 +149,45 @@ new_character :: proc() -> (c: ^Character) {
   max_items = 4
 
   return c
+}
+
+new_player :: proc(name , texture_path: cstring) -> (player: ^Player) {
+  // NOTE: Depending oh the name, change stats accordingly
+  player = new(Player)
+  using player
+  name = name
+  level = 1
+  health = 50
+  pain = 0
+  pain_rate = 0
+  pain_mul = 1
+  shield = 0
+  max_health = 50
+  healing = 10
+  critical_rate = 10
+  strength = 1
+  strength_mul = 1
+  defense = 1
+  defense_mul = 1
+  max_items = 4
+
+  texture = rl.LoadTexture(texture_path)
+  speed = 1
+
+  return player
+}
+
+delete_player :: proc(player: ^Player) {
+  for capsule in player.active_capsules {
+    detach(player, capsule.name)
+  }
+  for capsule in player.inventory {
+    free(capsule)
+  }
+  delete_dynamic_array(player.inventory)
+  delete_dynamic_array(player.active_capsules)
+  delete_dynamic_array(player.immunity)
+  free(player)
 }
 
 delete_character :: proc(character: ^Character) {
