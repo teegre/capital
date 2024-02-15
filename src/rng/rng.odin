@@ -59,6 +59,9 @@ new_seed :: proc() -> ( string, u64 ) {
     "N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
     "0","1","2","3","4","5","6","7","8","9"}
 
+  defer strings.builder_destroy(&s)
+  defer delete_slice(chars[:])
+
   for _ in 0..<8 {
      strings.write_string(&s, rand.choice(chars[:]))
   }

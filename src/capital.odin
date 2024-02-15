@@ -7,8 +7,11 @@ import "room"
 running := true
 player: ^entities.Player
 player_texture: rl.Texture2D
+player_indoor := true
 tree, wall, floor, door: rl.Texture2D
 main_room: ^entities.Room
+
+r1, r2, r3 : rl.Rectangle
 
 camera: rl.Camera2D
 
@@ -25,7 +28,6 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-
   wall = rl.LoadTexture("resources/walls.png")
   floor = rl.LoadTexture("resources/floors.png")
   door = rl.LoadTexture("resources/doors.png")
@@ -35,7 +37,7 @@ init :: proc() {
   main_room = room.make_room(WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
   player.src = {0, 0, TILE_SIZE, TILE_SIZE,}
-  player.dest = {WIDTH/2+8, HEIGHT/2+8, TILE_SIZE, TILE_SIZE}
+  player.dest = {(WIDTH/2)-(TILE_SIZE/2), (HEIGHT/2)-(TILE_SIZE/2), TILE_SIZE, TILE_SIZE}
 
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
   camera.target = rl.Vector2{player.dest.x - (player.dest.width / 2), player.dest.y - (player.dest.height / 2)}
@@ -90,6 +92,18 @@ update :: proc() {
 
   running = !rl.WindowShouldClose()
   camera.target = rl.Vector2{player.dest.x - (player.dest.width / 2), player.dest.y - (player.dest.height / 2)}
+  check_collision()
+}
+
+check_collision :: proc() {
+  r1 = rl.GetCollisionRec(player.dest, main_room.room)
+  r2 = rl.GetCollisionRec(player.dest, main_room.area)
+  if rl.CheckCollisionRecs(player.dest, main_room.area) {
+    player_indoor = true
+  } else {
+    player_indoor = false
+  }
+  r3 = rl.GetCollisionRec(player.dest, main_room.entrance)
 }
 
 render :: proc() {
@@ -124,8 +138,18 @@ draw :: proc() {
     i32(main_room.area.width),
     i32(main_room.area.height),
     rl.YELLOW)
-  origin: rl.Vector2 = {player.dest.width, player.dest.height}
-  rl.DrawTexturePro(player.texture, player.src, player.dest, origin, 0, rl.WHITE)
+
+  rl.DrawLine(WIDTH/2, 0, WIDTH/2, HEIGHT, rl.RED)
+  rl.DrawLine(0, HEIGHT/2, WIDTH, HEIGHT/2, rl.RED)
+
+  rl.DrawRectangleLines(i32(player.dest.x), i32(player.dest.y), i32(player.dest.width), i32(player.dest.height), rl.WHITE) // PLAYER
+  rl.DrawRectangleLines(i32(r1.x), i32(r1.y), i32(r1.width), i32(r1.height), rl.BLUE) // OUTSIDE WALLS
+  rl.DrawRectangleLines(i32(r2.x), i32(r2.y), i32(r2.width), i32(r2.height), rl.PURPLE) // LIVING AREA
+  rl.DrawRectangleLines(i32(r3.x), i32(r3.y), i32(r3.width), i32(r3.height), rl.GREEN) // DOOR
+
+  origin: rl.Vector2 = {player.dest.width - TILE_SIZE, player.dest.height - TILE_SIZE}
+  rl.DrawTexturePro(player.texture, player.src, player.dest, origin, 0, rl.WHITE) 
+  // rl.DrawText(rl.TextFormat("Center: %d,%d | Player: %f,%f", WIDTH/2, HEIGHT/2, player.dest.x, player.dest.y), WIDTH/2, HEIGHT/2, 8, rl.WHITE)
 }
 
 input :: proc() {

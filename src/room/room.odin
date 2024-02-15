@@ -41,17 +41,15 @@ draw_room :: proc(wall, floor, door: rl.Texture2D, room:  ^entities.Room, tile_s
   w := int(room.room.width / tile_size)
   h := int(room.room.height / tile_size)
 
-  x := room.room.x + tile_size
-  y := room.room.y + tile_size
   // offset_x := ((f32(screen_w) - (f32(w) * tile_size)) / 2) + tile_size
   // offset_y := ((f32(screen_h) - (f32(h) * tile_size)) / 2) + tile_size
 
   for i in 0..<(w*h) {
     src.x = 0
     src.y = 0
-    dest.x = x + (dest.width * f32(i % w))
-    dest.y = y + (dest.height * f32(i / w))
-    origin = {dest.width, dest.height}
+    dest.x = room.room.x + dest.width * f32(i % w)
+    dest.y = room.room.y + dest.height * f32(i / w)
+    origin = {dest.width - tile_size, dest.height - tile_size}
 
     if i == (w * h) - (w / 2) - 1 {
     // Door
