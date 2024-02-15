@@ -16,6 +16,8 @@ CAPSULE_RNG: rand.Rand
 ROLL_RNG: rand.Rand
 @(private)
 ACTION_RNG: rand.Rand
+@(private)
+CHEST_RNG: rand.Rand
 
 check_seed :: proc(seed: string) -> bool {
   /* Check if seed is legit. */
@@ -79,6 +81,7 @@ set_seed :: proc(seed: string = "") {
   CAPSULE_RNG = rand.create(U_SEED)
   ROLL_RNG = rand.create(U_SEED + 1)
   ACTION_RNG = rand.create(U_SEED + 2)
+  CHEST_RNG = rand.create(U_SEED + 3)
 }
 
 roll :: proc(s: int = 6, n: int = 2) -> ( sum: int ) {
