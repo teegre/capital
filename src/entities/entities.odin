@@ -55,9 +55,6 @@ Player :: struct {
   direction: u8,
 }
 
-// make_player :: proc(name: string) -> ^Player {
-// }
-
 // A room
 Room :: struct {
   texture: rl.Texture2D,
@@ -65,8 +62,14 @@ Room :: struct {
   area: rl.Rectangle, // living area.
   entrance: rl.Rectangle,
   exit: rl.Rectangle,
+  entrance_opening: bool,
+  entrance_closing: bool,
+  entrance_frame: int,
+  entrance_max_frame: int,
+  entrance_opened: bool,
   entrance_locked: bool,
   exit_locked: bool,
+  exit_opened: bool,
 }
 
 CapsuleTarget :: enum {

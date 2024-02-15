@@ -3,7 +3,7 @@ package room
 import rl "vendor:raylib"
 import "../entities"
 
-make_room :: proc(screen_w, screen_h, w, h, tile_size: f32) -> ^entities.Room {
+make_room :: proc(screen_w, screen_h, w, h, tile_size: f32, door_animation_frames: int) -> ^entities.Room {
   using entities, rl
     width := w * tile_size
     height := h * tile_size
@@ -25,6 +25,8 @@ make_room :: proc(screen_w, screen_h, w, h, tile_size: f32) -> ^entities.Room {
       tile_size,
       tile_size * 2,
     }
+
+    room.entrance_max_frame = door_animation_frames
     room.exit_locked = true
     room.entrance_locked = false
 
@@ -53,7 +55,31 @@ draw_room :: proc(wall, floor, door: rl.Texture2D, room:  ^entities.Room, tile_s
 
     if i == (w * h) - (w / 2) - 1 {
     // Door
+      if room.entrance_opening {
+        if room.entrance_frame == room.entrance_max_frame {
+          room.entrance_opening = false
+          room.entrance_opened = true
+        } else {
+          src.x = f32(room.entrance_frame) * tile_size
+          room.entrance_frame += 1
+        }
+      }
+      if room.entrance_closing {
+        if room.entrance_frame == -1 {
+          room.entrance_frame = 0
+          room.entrance_closing = false
+          room.entrance_opened = false
+        } else {
+          src.x = f32(room.entrance_frame) * tile_size
+          room.entrance_frame -= 1
+        }
+      }
+      if room.entrance_opened && !room.entrance_closing {
+        src.x = f32(room.entrance_max_frame - 1) * tile_size
+      }
+
       rl.DrawTexturePro(door, src, dest, origin, 0, rl.WHITE)
+
     } else if i % w == 0 || i / w == 0 || i % w == w - 1 || i / w == h - 1 {
     // Wall
     // Horizontal spritesheet: TL TE TR LE RE BL BE BR
@@ -83,4 +109,12 @@ draw_room :: proc(wall, floor, door: rl.Texture2D, room:  ^entities.Room, tile_s
       rl.DrawTexturePro(floor, src, dest, origin, 0, rl.WHITE)
     }
   }
+}
+
+door_open :: proc(room: ^entities.Room, door_texture: rl.Texture2D, frame, max_frame: int) {
+  
+}
+
+door_close :: proc(room: ^entities.Room, door_texture: rl.Texture2D) {
+
 }
