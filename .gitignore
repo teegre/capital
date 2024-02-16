@@ -1,2 +1,4 @@
 src/bin
 *.bin
+NOTES.md
+src/resources/src
