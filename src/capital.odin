@@ -7,7 +7,6 @@ import "room"
 
 running := true
 player: ^entities.Player
-player_texture: rl.Texture2D
 player_indoor := true
 player_next_to_entrance := false
 player_next_to_exit := false
@@ -231,6 +230,9 @@ input :: proc() {
     } else if rl.IsKeyDown(RIGHT) || rl.IsKeyDown(L) {
       player.moving = true
       player.direction = 4
+    } else if rl.IsKeyPressed(SPACE) {
+      main_room.entrance_locked = !main_room.entrance_locked
+      main_room.exit_locked = !main_room.exit_locked
     }
 }
 
