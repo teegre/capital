@@ -3,8 +3,9 @@ package room
 import rl "vendor:raylib"
 import "../entities"
 
-make_room :: proc(screen_w, screen_h, w, h, tile_size: f32, door_animation_frames: int) -> ^entities.Room {
+make_room :: proc(texture_path: cstring, screen_w, screen_h, w, h, tile_size: f32) -> ^entities.Room {
   using entities, rl
+    
     width := w * tile_size
     height := h * tile_size
 
@@ -12,6 +13,8 @@ make_room :: proc(screen_w, screen_h, w, h, tile_size: f32, door_animation_frame
     y := (screen_h - height) / 2
 
     room := new(Room)
+    room.texture = LoadTexture(texture_path)
+    room.tile_size = u8(tile_size)
     room.room = Rectangle{x, y, width, height}
     room.area = Rectangle{
       room.room.x + tile_size,
@@ -25,17 +28,24 @@ make_room :: proc(screen_w, screen_h, w, h, tile_size: f32, door_animation_frame
       tile_size,
       tile_size * 2,
     }
+    room.exit = Rectangle{
+      room.room.x + (width / 2) - (tile_size / 2),
+      room.room.y - (tile_size * 1.5),
+      tile_size,
+      tile_size * 2,
+    }
 
-    room.entrance_max_frame = door_animation_frames
+    room.door_max_frame = int(room.texture.width / i32(tile_size))
     room.exit_locked = true
     room.entrance_locked = false
 
     return room
 }
 
-draw_room :: proc(wall, floor, door: rl.Texture2D, room:  ^entities.Room, tile_size: f32) {
+draw_room :: proc(room:  ^entities.Room) {
   src, dest: rl.Rectangle
   origin: rl.Vector2
+  tile_size := f32(room.tile_size)
 
   src = {0, 0, tile_size, tile_size}
   dest = {0, 0, tile_size, tile_size}
@@ -54,9 +64,10 @@ draw_room :: proc(wall, floor, door: rl.Texture2D, room:  ^entities.Room, tile_s
     origin = {dest.width - tile_size, dest.height - tile_size}
 
     if i == (w * h) - (w / 2) - 1 {
-    // Door
+    // Entrance door
+      src.y = tile_size
       if room.entrance_opening {
-        if room.entrance_frame == room.entrance_max_frame {
+        if room.entrance_frame == room.door_max_frame {
           room.entrance_opening = false
           room.entrance_opened = true
         } else {
@@ -70,19 +81,16 @@ draw_room :: proc(wall, floor, door: rl.Texture2D, room:  ^entities.Room, tile_s
           room.entrance_closing = false
           room.entrance_opened = false
         } else {
-          src.x = f32(room.entrance_frame) * tile_size
+          src.x = f32(room.entrance_frame * int(tile_size))
           room.entrance_frame -= 1
         }
       }
       if room.entrance_opened && !room.entrance_closing {
-        src.x = f32(room.entrance_max_frame - 1) * tile_size
+        src.x = f32(room.door_max_frame - 1) * f32(tile_size)
       }
-
-      rl.DrawTexturePro(door, src, dest, origin, 0, rl.WHITE)
-
     } else if i % w == 0 || i / w == 0 || i % w == w - 1 || i / w == h - 1 {
     // Wall
-    // Horizontal spritesheet: TL TE TR LE RE BL BE BR
+      src.y = 0
       if i == 0 { // top-left corner
         src.x = 0
       } else if i / w == 0  && i < w - 1 { // top edge
@@ -102,19 +110,11 @@ draw_room :: proc(wall, floor, door: rl.Texture2D, room:  ^entities.Room, tile_s
       if i == (w * h) - 1 { // bottom-right corner
         src.x = 7 * tile_size
       }
-      // src.x = tile_size * f32(i % 8)
-      rl.DrawTexturePro(wall, src, dest, origin, 0, rl.WHITE)
     } else {
-    // Floor
-      rl.DrawTexturePro(floor, src, dest, origin, 0, rl.WHITE)
+      // Floor
+      src.x = 0
+      src.y = 3 * tile_size
     }
+    rl.DrawTexturePro(room.texture, src, dest, origin, 0, rl.WHITE)
   }
-}
-
-door_open :: proc(room: ^entities.Room, door_texture: rl.Texture2D, frame, max_frame: int) {
-  
-}
-
-door_close :: proc(room: ^entities.Room, door_texture: rl.Texture2D) {
-
 }

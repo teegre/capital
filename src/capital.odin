@@ -1,6 +1,7 @@
 package main
 
 import rl "vendor:raylib"
+// import "core:log"
 import "entities"
 import "room"
 
@@ -29,13 +30,11 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  wall = rl.LoadTexture("resources/walls.png")
-  floor = rl.LoadTexture("resources/floors.png")
-  door = rl.LoadTexture("resources/doors.png")
-
   player = entities.new_player("virginie", "resources/virginie.png")
+  main_room = room.make_room("resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
-  main_room = room.make_room(WIDTH, HEIGHT, 7, 7, TILE_SIZE, int(door.width) / TILE_SIZE)
+  // context.logger = log.create_console_logger()
+  // log.debugf("ROOM: %v", main_room)
 
   player.src = {0, 0, TILE_SIZE, TILE_SIZE,}
   player.dest = {(WIDTH/2)-(TILE_SIZE/2), (HEIGHT/2)-(TILE_SIZE/2), TILE_SIZE, TILE_SIZE}
@@ -161,7 +160,7 @@ render :: proc() {
 
 draw :: proc() {
   rl.DrawRectangleLines(0, 0, WIDTH, HEIGHT, rl.RED)
-  room.draw_room(wall, floor, door, main_room, TILE_SIZE)
+  room.draw_room(main_room)
   // DEBUG
   // rl.DrawCircle(WIDTH/2, HEIGHT/2, 8, rl.SKYBLUE)
   // rl.DrawRectangleLines(
@@ -207,16 +206,13 @@ input :: proc() {
     if rl.IsKeyDown(UP) || rl.IsKeyDown(K) {
       player.moving = true
       player.direction = 2
-    }
-    if rl.IsKeyDown(DOWN) || rl.IsKeyDown(J) {
+    } else if rl.IsKeyDown(DOWN) || rl.IsKeyDown(J) {
       player.moving = true
       player.direction = 0
-    }
-    if rl.IsKeyDown(LEFT) || rl.IsKeyDown(H) {
+    } else if rl.IsKeyDown(LEFT) || rl.IsKeyDown(H) {
       player.moving = true
       player.direction = 6
-    }
-    if rl.IsKeyDown(RIGHT) || rl.IsKeyDown(L) {
+    } else if rl.IsKeyDown(RIGHT) || rl.IsKeyDown(L) {
       player.moving = true
       player.direction = 4
     }

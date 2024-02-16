@@ -57,7 +57,13 @@ Player :: struct {
 
 // A room
 Room :: struct {
+  // Spritesheet consists of 3 rows of 8 sprites and 1 row of 1 sprite:
+  // Line 1: Walls (LC TE RC LE RE BL BE BR ).
+  // Line 2: Entrance + animation.
+  // Line 3: Exit door + animation
+  // Line 4: Floor
   texture: rl.Texture2D,
+  tile_size: u8,
   room: rl.Rectangle, // full room.
   area: rl.Rectangle, // living area.
   entrance: rl.Rectangle,
@@ -65,7 +71,9 @@ Room :: struct {
   entrance_opening: bool,
   entrance_closing: bool,
   entrance_frame: int,
-  entrance_max_frame: int,
+  door_max_frame: int, // 
+  exit_opening: bool,
+  exit_frame: int,
   entrance_opened: bool,
   entrance_locked: bool,
   exit_locked: bool,
