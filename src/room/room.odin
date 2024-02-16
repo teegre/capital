@@ -5,7 +5,7 @@ import "../entities"
 
 make_room :: proc(texture_path: cstring, screen_w, screen_h, w, h, tile_size: f32) -> ^entities.Room {
   using entities, rl
-    
+
     width := w * tile_size
     height := h * tile_size
 
@@ -30,13 +30,13 @@ make_room :: proc(texture_path: cstring, screen_w, screen_h, w, h, tile_size: f3
     }
     room.exit = Rectangle{
       room.room.x + (width / 2) - (tile_size / 2),
-      room.room.y - (tile_size * 1.5),
+      room.room.y - tile_size / 2,
       tile_size,
       tile_size * 2,
     }
 
     room.door_max_frame = int(room.texture.width / i32(tile_size))
-    room.exit_locked = true
+    room.exit_locked = false
     room.entrance_locked = false
 
     return room
@@ -53,9 +53,6 @@ draw_room :: proc(room:  ^entities.Room) {
   w := int(room.room.width / tile_size)
   h := int(room.room.height / tile_size)
 
-  // offset_x := ((f32(screen_w) - (f32(w) * tile_size)) / 2) + tile_size
-  // offset_y := ((f32(screen_h) - (f32(h) * tile_size)) / 2) + tile_size
-
   for i in 0..<(w*h) {
     src.x = 0
     src.y = 0
@@ -63,7 +60,32 @@ draw_room :: proc(room:  ^entities.Room) {
     dest.y = room.room.y + dest.height * f32(i / w)
     origin = {dest.width - tile_size, dest.height - tile_size}
 
-    if i == (w * h) - (w / 2) - 1 {
+    if i == (w / 2) {
+    // Exit door
+      src.y = 2 * tile_size
+      if room.exit_opening {
+        if room.exit_frame == room.door_max_frame {
+          room.exit_opening = false
+          room.exit_opened = true
+        } else {
+          src.x = f32(room.exit_frame) * tile_size
+          room.exit_frame += 1
+        }
+      }
+      if room.exit_closing {
+        if room.exit_frame == -1 {
+          room.exit_frame = 0
+          room.exit_closing = false
+          room.exit_opened = false
+        } else {
+          src.x = f32(room.exit_frame) * tile_size
+          room.exit_frame -= 1
+        }
+      }
+      if room.exit_opened && !room.exit_closing {
+        src.x = f32(room.door_max_frame - 1) * f32(tile_size)
+      }
+    } else if i == (w * h) - (w / 2) - 1 {
     // Entrance door
       src.y = tile_size
       if room.entrance_opening {

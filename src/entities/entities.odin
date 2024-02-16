@@ -71,8 +71,9 @@ Room :: struct {
   entrance_opening: bool,
   entrance_closing: bool,
   entrance_frame: int,
-  door_max_frame: int, // 
+  door_max_frame: int,
   exit_opening: bool,
+  exit_closing: bool,
   exit_frame: int,
   entrance_opened: bool,
   entrance_locked: bool,
