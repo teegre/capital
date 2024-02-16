@@ -47,14 +47,14 @@ init :: proc() {
 }
 
 update :: proc() {
-  player.src.y = player.src.width * f32(player.direction)
+  player.src.y = player.src.height * f32(player.direction)
 
-  if player_next_to_entrance && !main_room.entrance_locked && !main_room.entrance_opened  && ((player.direction == 0 && player_indoor) || ((player.direction == 2) && !player_indoor)) {
+  if player_next_to_entrance && !main_room.entrance_locked && !main_room.entrance_opening && !main_room.entrance_opened  && ((player.direction == 0 && player_indoor) || ((player.direction == 2) && !player_indoor)) {
     player.moving = false
     main_room.entrance_opening = true
-  } else if !player_next_to_entrance && main_room.entrance_opened {
+  } else if !player_next_to_entrance && main_room.entrance_opened && !main_room.entrance_closing {
     main_room.entrance_closing = true
-  } 
+  }
 
   if player.moving {
     switch player.direction {
@@ -95,25 +95,22 @@ update :: proc() {
         player.dest.y = HEIGHT - (player.dest.height / 2)
       }
     }
-    if !player_next_to_entrance {
-      player.src.y = player.src.width * f32(player.direction + 1)
-    }
   }
 
-  if !player_indoor && !player_next_to_entrance && r1.height > 0 {//== player.dest.height {
+  if !player_indoor && !player_next_to_entrance && r1.height > 0 {
     switch player.direction {
-      case 6:
-        player.dest.x += player.speed
-      case 4:
-          player.dest.x -= player.speed
+    case 6:
+      player.dest.x += player.speed
+    case 4:
+      player.dest.x -= player.speed
     }
   }
-  if !player_indoor && !player_next_to_entrance && r1.width > 0 {//== player.dest.width {
+  if !player_indoor && !player_next_to_entrance && r1.width > 0 {
     switch player.direction {
-      case 2:
-        player.dest.y += player.speed
-      case 0:
-          player.dest.y -= player.speed
+    case 2:
+      player.dest.y += player.speed
+    case 0:
+      player.dest.y -= player.speed
     }
   }
   if frame_count % 6 == 1 {
@@ -127,6 +124,9 @@ update :: proc() {
   }
 
   player.src.x = player.src.width * f32(player.frame)
+  if player.moving {
+    player.src.y = player.src.height * f32(player.direction + 1)
+  }
 
   player.moving = false
 
@@ -152,7 +152,7 @@ check_collision :: proc() {
 
 render :: proc() {
   rl.BeginDrawing()
-    rl.ClearBackground(rl.Color{10, 10, 10, 255})
+    rl.ClearBackground(rl.Color{40, 40, 40, 255})
     rl.BeginMode2D(camera)
       draw()
     rl.EndMode2D()
