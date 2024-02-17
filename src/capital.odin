@@ -36,7 +36,7 @@ init :: proc() {
   rl.SetExitKey(rl.KeyboardKey(0))
 
   player = entities.new_player("virginie", "resources/virginie.png")
-  main_room = room.make_room("resources/room-b.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
+  main_room = room.make_room("resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
   // context.logger = log.create_console_logger()
   // log.debugf("ROOM: %v", main_room)
@@ -71,7 +71,7 @@ update :: proc() {
     main_room.exit_closing = true
   }
 
-  if player.moving {
+  if player.moving  && !main_room.entrance_opening && !main_room.exit_opening {
     switch player.direction {
     case 2: // UP
       player.dest.y -= player.speed
