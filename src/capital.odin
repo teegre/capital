@@ -22,7 +22,7 @@ TILE_SIZE :: 16
 frame_count: int = 0
 
 WIDTH :: 960
-HEIGHT :: 540
+HEIGHT :: 560
 
 init :: proc() {
 
@@ -31,7 +31,7 @@ init :: proc() {
   rl.SetExitKey(rl.KeyboardKey(0))
 
   player = entities.new_player("virginie", "resources/virginie.png")
-  main_room = room.make_room("resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
+  main_room = room.make_room("resources/room-c.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
   // context.logger = log.create_console_logger()
   // log.debugf("ROOM: %v", main_room)
@@ -74,6 +74,21 @@ update :: proc() {
       player.dest.y += player.speed
     }
 
+    if !player_indoor && !player_next_to_entrance && !player_next_to_exit {
+      if player.dest.x < main_room.corridor.x {
+        player.dest.x = main_room.corridor.x
+      }
+      if player.dest.x > main_room.corridor.x + main_room.corridor.width - player.dest.width {
+        player.dest.x = main_room.corridor.x + main_room.corridor.width - player.dest.width
+      }
+      if player.dest.y < main_room.corridor.y {
+        player.dest.y = main_room.corridor.y
+      }
+      if player.dest.y > main_room.corridor.y + main_room.corridor.height - player.dest.height {
+        player.dest.y = main_room.corridor.y + main_room.corridor.height - player.dest.height
+      }
+    }
+
     if player_indoor && !player_next_to_entrance && !player_next_to_exit {
       if player.dest.x < main_room.area.x {
         player.dest.x = main_room.area.x
@@ -103,22 +118,6 @@ update :: proc() {
     }
   }
 
-  if !player_indoor && !player_next_to_entrance && !player_next_to_exit && r1.height > 0 {
-    switch player.direction {
-    case 6:
-      player.dest.x += player.speed
-    case 4:
-      player.dest.x -= player.speed
-    }
-  }
-  if !player_indoor && !player_next_to_entrance && !player_next_to_exit && r1.width > 0 {
-    switch player.direction {
-    case 2:
-      player.dest.y += player.speed
-    case 0:
-      player.dest.y -= player.speed
-    }
-  }
   if frame_count % 6 == 1 {
     player.frame += 1
   }
@@ -196,6 +195,12 @@ draw :: proc() {
   //   i32(main_room.exit.width),
   //   i32(main_room.exit.height),
   //   rl.GREEN)
+  // rl.DrawRectangleLines(
+  //   i32(main_room.corridor.x),
+  //   i32(main_room.corridor.y),
+  //   i32(main_room.corridor.width),
+  //   i32(main_room.corridor.height),
+  //   rl.RED)
 
   // rl.DrawLine(WIDTH/2, 0, WIDTH/2, HEIGHT, rl.RED)
   // rl.DrawLine(0, HEIGHT/2, WIDTH, HEIGHT/2, rl.RED)

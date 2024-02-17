@@ -22,6 +22,12 @@ make_room :: proc(texture_path: cstring, screen_w, screen_h, w, h, tile_size: f3
       width - (tile_size * 2),
       height - (tile_size * 2),
     }
+    room.corridor = Rectangle{
+      room.room.x,
+      room.room.y + room.room.height,
+      room.room.width,
+      screen_h - room.room.y - room.room.height,
+    }
     room.entrance = Rectangle{
       room.room.x + (width / 2) - (tile_size / 2),
       room.room.y + height - (tile_size * 1.5),
@@ -137,6 +143,25 @@ draw_room :: proc(room:  ^entities.Room) {
       src.x = 0
       src.y = 3 * tile_size
     }
+    rl.DrawTexturePro(room.texture, src, dest, origin, 0, rl.WHITE)
+  }
+  draw_corridor(room)
+}
+
+draw_corridor :: proc(room: ^entities.Room) {
+  tile_size := f32(room.tile_size)
+  src, dest: rl.Rectangle
+  origin: rl.Vector2
+
+  w := int(room.corridor.width / tile_size)
+  h := int(room.corridor.height / tile_size)
+  src = {0, 3 * tile_size, tile_size, tile_size}
+  dest = {0, 0, tile_size, tile_size}
+
+  for i in 0..<(w*h) {
+    dest.x = room.corridor.x + dest.width * f32(i % w)
+    dest.y = room.corridor.y + dest.height * f32(i / w)
+    origin = {dest.width - tile_size, dest.height - tile_size}
     rl.DrawTexturePro(room.texture, src, dest, origin, 0, rl.WHITE)
   }
 }

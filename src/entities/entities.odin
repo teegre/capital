@@ -66,6 +66,7 @@ Room :: struct {
   tile_size: u8,
   room: rl.Rectangle, // full room.
   area: rl.Rectangle, // living area.
+  corridor: rl.Rectangle, // corridor connected to room.
   entrance: rl.Rectangle,
   exit: rl.Rectangle,
   entrance_opening: bool,
