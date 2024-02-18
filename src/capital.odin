@@ -11,11 +11,6 @@ player_indoor := true
 player_next_to_entrance := false
 player_next_to_exit := false
 
-cam_zoom: bool = false
-cam_zoom_target: f32 = 0.0
-cam_zoom_increment: f32 = 0.0
-
-tree, wall, floor, door: rl.Texture2D
 main_room: ^entities.Room
 
 r1, r2, r3, r4 : rl.Rectangle
@@ -46,12 +41,8 @@ init :: proc() {
   player.direction = 2
 
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
-  camera.zoom = 2.0
-  camera.target = rl.Vector2{
-    main_room.corridor.x + (main_room.corridor.width / 2),
-    main_room.corridor.y + (main_room.corridor.height / 2),
-  }
-  // manage_camera()
+  camera.target = rl.Vector2{WIDTH/2, player.dest.y}
+  camera.zoom = 3.0
 }
 
 update :: proc() {
@@ -152,55 +143,13 @@ update :: proc() {
 }
 
 manage_camera :: proc() {
-
-  if cam_zoom && frame_count % 2 == 0 {
-    if player.direction == 0 {// DOWN
-      if f16le(camera.zoom) > 2.0 {
-        cam_zoom = true
-        cam_zoom_increment = -0.025
-        cam_zoom_target = 2.0
-      }
-    } else if player.direction == 2 {// UP
-      if f16le(camera.zoom) < 3.0 {
-        cam_zoom = true
-        cam_zoom_increment = 0.01
-        cam_zoom_target = 3.0
-      }
-    }
-    camera.zoom += cam_zoom_increment
-  }
-
-  if f16le(camera.zoom) == f16le(cam_zoom_target) {
-    cam_zoom = false
-    cam_zoom_increment = 0.0
-    cam_zoom_target = 0.0
-  }
-
   if player_indoor {
     camera.target = rl.Vector2{
-      main_room.area.x + (main_room.area.width / 2),
+      WIDTH/2,
       main_room.area.y + (main_room.area.height / 2),
     }
-  } else if player.dest.y >= main_room.corridor.y + (main_room.corridor.height / 2) {
-    camera.target = rl.Vector2{
-      main_room.corridor.x + (main_room.corridor.width / 2),
-      main_room.corridor.y + (main_room.corridor.height / 2),
-    }
-    if !cam_zoom && player.direction == 0 {// DOWN
-      if f16le(camera.zoom) > 2.0 {
-        cam_zoom = true
-        cam_zoom_increment = -0.025
-        cam_zoom_target = 2.0
-      }
-    } else if !cam_zoom && player.direction == 2 {// UP
-      if f16le(camera.zoom) < 3.0 {
-        cam_zoom = true
-        cam_zoom_increment = 0.01
-        cam_zoom_target = 3.0
-      }
-    }
   } else {
-    camera.target = rl.Vector2{player.dest.x + (player.dest.width / 2), player.dest.y + (player.dest.height / 2)}
+    camera.target = rl.Vector2{WIDTH/2, player.dest.y}
   }
 }
 
@@ -273,10 +222,6 @@ draw :: proc() {
   // rl.DrawText(
   //   rl.TextFormat("%d,%d", i32(player.dest.x), i32(player.dest.y)),
   //   i32(player.dest.x), i32(player.dest.y - 10), 1, rl.WHITE)
-  // rl.DrawText(
-  //   rl.TextFormat("x%f->%f [%d]", f32(camera.zoom), f32(cam_zoom_target), int(cam_zoom)),
-  //   i32(player.dest.x), i32(player.dest.y - 10), 1, rl.WHITE)
-
 
   origin: rl.Vector2 = {player.dest.width - TILE_SIZE, player.dest.height - TILE_SIZE}
   rl.DrawTexturePro(player.texture, player.src, player.dest, origin, 0, rl.WHITE)
