@@ -52,7 +52,14 @@ Player :: struct {
   moving: bool,
   src: rl.Rectangle, // spritesheet
   dest: rl.Rectangle, // screen (use this for player pos and hitbox)
-  direction: u8,
+  direction: Direction,
+}
+
+Direction :: enum {
+  DOWN = 0,
+  UP = 2,
+  RIGHT = 4,
+  LEFT = 6,
 }
 
 // A room

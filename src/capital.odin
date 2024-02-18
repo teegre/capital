@@ -38,7 +38,7 @@ init :: proc() {
 
   player.src = {0, 0, TILE_SIZE, TILE_SIZE,}
   player.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.corridor.height + main_room.corridor.y - TILE_SIZE, TILE_SIZE, TILE_SIZE}
-  player.direction = 2
+  player.direction = .UP
 
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
   camera.target = rl.Vector2{WIDTH/2, player.dest.y}
@@ -48,14 +48,14 @@ init :: proc() {
 update :: proc() {
   player.src.y = player.src.height * f32(player.direction)
 
-  if player_next_to_entrance && !main_room.entrance_locked && !main_room.entrance_opening && !main_room.entrance_opened  && ((player.direction == 0 && player_indoor) || (player.direction == 2 && !player_indoor)) {
+  if player_next_to_entrance && !main_room.entrance_locked && !main_room.entrance_opening && !main_room.entrance_opened  && ((player.direction == .DOWN && player_indoor) || (player.direction == .UP && !player_indoor)) {
     player.moving = false
     main_room.entrance_opening = true
   } else if !player_next_to_entrance && main_room.entrance_opened && !main_room.entrance_closing {
     main_room.entrance_closing = true
   }
 
-  if player_next_to_exit && !main_room.exit_locked && !main_room.exit_opening && !main_room.exit_opened  && ((player.direction == 2 && player_indoor) || (player.direction == 0 && !player_indoor)) {
+  if player_next_to_exit && !main_room.exit_locked && !main_room.exit_opening && !main_room.exit_opened  && ((player.direction == .UP && player_indoor) || (player.direction == .DOWN && !player_indoor)) {
     player.moving = false
     main_room.exit_opening = true
   } else if !player_next_to_exit && main_room.exit_opened && !main_room.exit_closing {
@@ -64,13 +64,13 @@ update :: proc() {
 
   if player.moving  && !main_room.entrance_opening && !main_room.exit_opening {
     switch player.direction {
-    case 2: // UP
+    case .UP:
       player.dest.y -= player.speed
-    case 4: // RIGHT
+    case .RIGHT:
       player.dest.x += player.speed
-    case 6: // LEFT
+    case .LEFT: // LEFT
       player.dest.x -= player.speed
-    case 0: // DOWN
+    case .DOWN: // DOWN
       player.dest.y += player.speed
     }
 
@@ -133,7 +133,7 @@ update :: proc() {
 
   player.src.x = player.src.width * f32(player.frame)
   if player.moving {
-    player.src.y = player.src.height * f32(player.direction + 1)
+    player.src.y = player.src.height * (f32(player.direction) + 1)
   }
 
   player.moving = false
@@ -149,7 +149,10 @@ manage_camera :: proc() {
       main_room.area.y + (main_room.area.height / 2),
     }
   } else {
-    camera.target = rl.Vector2{WIDTH/2, player.dest.y}
+    camera.target = rl.Vector2{
+      WIDTH/2,
+      player.dest.y,
+    }
   }
 }
 
@@ -231,16 +234,16 @@ input :: proc() {
   using rl.KeyboardKey
     if rl.IsKeyDown(UP) || rl.IsKeyDown(K) {
       player.moving = true
-      player.direction = 2
+      player.direction = .UP
     } else if rl.IsKeyDown(DOWN) || rl.IsKeyDown(J) {
       player.moving = true
-      player.direction = 0
+      player.direction = .DOWN
     } else if rl.IsKeyDown(LEFT) || rl.IsKeyDown(H) {
       player.moving = true
-      player.direction = 6
+      player.direction = .LEFT
     } else if rl.IsKeyDown(RIGHT) || rl.IsKeyDown(L) {
       player.moving = true
-      player.direction = 4
+      player.direction = .RIGHT
     } else if rl.IsKeyPressed(SPACE) {
       main_room.entrance_locked = !main_room.entrance_locked
       main_room.exit_locked = !main_room.exit_locked
