@@ -1,4 +1,4 @@
-src/bin
-*.bin
+bin/
+.task/
 NOTES.md
-src/resources/src
+capital/resources/src

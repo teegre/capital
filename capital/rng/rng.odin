@@ -103,14 +103,16 @@ success :: proc(source, target: ^entities.Character) -> bool {
   /*
     Return true if source's roll is greater than target's roll.
   */
+  source_stats := entities.get_statistics(source)
+  target_stats := entities.get_statistics(target)
   source_sum : int = 0
   target_sum : int = 0
 
   for source_sum == target_sum {
     source_sum = roll(6, 2)
     target_sum = roll(6, 2)
-    source_sum += source.agility
-    target_sum += target.agility
+    source_sum += source_stats.agility
+    target_sum += target_stats.agility
   }
 
   return source_sum > target_sum

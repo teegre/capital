@@ -3,11 +3,13 @@ package steroids
 import "../../entities"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
-  if len(owner.inventory) == owner.max_items {
+  using entities
+
+  stats := get_statistics(owner)
+
+  if len(stats.inventory) == stats.max_items {
     return false
   }
-
-  using entities
 
   capsule := new(Capsule)
   capsule.name = "steroids"
@@ -31,12 +33,14 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
 use :: proc(source, target: ^entities.Character) -> (response: entities.Response) {
   using entities
 
+  stats := get_statistics(source)
+
   capsule := get_capsule_from_inventory(source, "steroids")
   attach(source, capsule)
 
   capsule.active = false
   capsule.value = source.strength_mul
-  source.strength_mul *= 2
+  stats.strength_mul *= 2
 
   response.source = source
   response.target = target
@@ -47,7 +51,8 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
 
 on_detach :: proc(target: ^entities.Character) {
   using entities
+  stats := get_statistics(target)
   capsule := get_active_capsule(target, "steroids")
-  target.strength_mul = capsule.value
+  stats.strength_mul = capsule.value
   capsule.active = true
 }

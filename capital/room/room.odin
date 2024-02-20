@@ -48,7 +48,7 @@ make_room :: proc(texture_path: cstring, screen_w, screen_h, w, h, tile_size: f3
     return room
 }
 
-draw_room :: proc(room:  ^entities.Room) {
+draw_room :: proc(room: ^entities.Room) {
   src, dest: rl.Rectangle
   origin: rl.Vector2
   tile_size := f32(room.tile_size)

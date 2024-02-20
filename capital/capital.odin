@@ -4,8 +4,10 @@ import rl "vendor:raylib"
 // import "core:log"
 import "entities"
 import "room"
+// import "capsules"
 
 running := true
+base_player: ^entities.Character
 player: ^entities.Player
 player_indoor := true
 player_next_to_entrance := false
@@ -30,8 +32,9 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  player = entities.new_player("virginie", "resources/virginie.png")
-  main_room = room.make_room("resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
+  base_player = entities.new_player("virginie", "capital/resources/virginie.png")
+  player = base_player.variant.(^entities.Player)
+  main_room = room.make_room("capital/resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
   // context.logger = log.create_console_logger()
   // log.debugf("ROOM: %v", main_room)
@@ -251,9 +254,8 @@ input :: proc() {
 }
 
 quit :: proc() {
-  rl.UnloadTexture(player.texture)
-  entities.delete_player(player)
-  free(main_room)
+  entities.delete_character(player)
+  entities.delete_room(main_room)
   rl.CloseWindow()
 }
 

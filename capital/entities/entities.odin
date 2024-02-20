@@ -1,5 +1,8 @@
 package entities
 
+import "core:fmt"
+import "core:mem"
+import "core:reflect"
 import rl "vendor:raylib"
 
 // A capsule
@@ -15,14 +18,10 @@ Capsule :: struct {
   use: CapsuleUse, // mandatory.
   effect: CapsuleEffect,  // optional.
   on_detach: CapsuleOnDetach, // optional.
-  texture: rl.Texture2D,
-  position: rl.Vector2,
-  hitbox: rl.Rectangle,
 }
 
 // A character
-Character :: struct {
-  name: string,
+Statistics :: struct {
   level: int,
   health: int,
   pain: int,
@@ -43,16 +42,42 @@ Character :: struct {
   inventory: [dynamic]^Capsule,
 }
 
+Character :: struct {
+  name: string,
+  texture: rl.Texture2D,
+  src: rl.Rectangle,
+  dest: rl.Rectangle,
+  direction: Direction,
+
+  variant: union {
+    ^Player,
+    ^Enemy,
+    ^Boss,
+    ^NonPlayer,
+  }
+}
+
 // The player
 Player :: struct {
   using character: Character,
-  texture: rl.Texture2D,
+  using stats: Statistics,
   speed: f32,
   frame: int,
   moving: bool,
-  src: rl.Rectangle, // spritesheet
-  dest: rl.Rectangle, // screen (use this for player pos and hitbox)
-  direction: Direction,
+}
+
+Enemy :: struct {
+  using character: Character,
+  using stats: Statistics,
+}
+
+Boss :: struct {
+  using character: Character,
+  using stats: Statistics,
+}
+
+NonPlayer :: struct {
+  using character: Character,
 }
 
 Direction :: enum {
@@ -150,77 +175,79 @@ Flags :: distinct bit_set[Flag]
 
 // TODO: COMBAT GROUP (Player(s) + Enemy(ies).
 
-new_character :: proc() -> (c: ^Character) {
-  c = new(Character)
-  using c
-  level = 1
-  health = 50
-  pain = 0
-  pain_rate = 0
-  shield = 0
-  max_health = 50
-  healing = 10
-  critical_rate = 10
-  strength = 1
-  strength_mul = 1
-  defense = 1
-  defense_mul = 1
-  agility = 1
-  max_items = 4
+// new_character :: proc() -> (c: ^Character) {
+//   c = new(Character)
+//   using c
+//   level = 1
+//   health = 50
+//   pain = 0
+//   pain_rate = 0
+//   shield = 0
+//   max_health = 50
+//   healing = 10
+//   critical_rate = 10
+//   strength = 1
+//   strength_mul = 1
+//   defense = 1
+//   defense_mul = 1
+//   agility = 1
+//   max_items = 4
+
+//   return c
+// }
+
+@(private)
+new_character :: proc($T: typeid) -> ^Character {
+  c := new(T)
+  c.variant = c
+  return c
+}
+
+new_player :: proc(name: string , texture_path: cstring) -> ^Character {
+  c := new_character(Player)
+  c.name = name
+  c.texture = rl.LoadTexture(texture_path)
+
+  p := c.variant.(^Player)
+  p.level = 1
+  p.health = 50
+  p.pain = 0
+  p.pain_rate = 0
+  p.pain_mul = 1
+  p.shield = 0
+  p.max_health = 50
+  p.healing = 10
+  p.critical_rate = 10
+  p.strength = 1
+  p.strength_mul = 1
+  p.defense = 1
+  p.defense_mul = 1
+  p.max_items = 4
+  p.speed = 1
 
   return c
 }
 
-new_player :: proc(name , texture_path: cstring) -> (player: ^Player) {
-  // NOTE: Depending oh the name, change stats accordingly
-  player = new(Player)
-  using player
-  name = name
-  level = 1
-  health = 50
-  pain = 0
-  pain_rate = 0
-  pain_mul = 1
-  shield = 0
-  max_health = 50
-  healing = 10
-  critical_rate = 10
-  strength = 1
-  strength_mul = 1
-  defense = 1
-  defense_mul = 1
-  max_items = 4
-
-  texture = rl.LoadTexture(texture_path)
-  speed = 1
-
-  return player
-}
-
-delete_player :: proc(player: ^Player) {
-  for capsule in player.active_capsules {
-    detach(player, capsule.name)
-  }
-  for capsule in player.inventory {
-    free(capsule)
-  }
-  delete_dynamic_array(player.inventory)
-  delete_dynamic_array(player.active_capsules)
-  delete_dynamic_array(player.immunity)
-  free(player)
-}
-
 delete_character :: proc(character: ^Character) {
-  for capsule in character.active_capsules {
-    detach(character, capsule.name)
+  stats := get_statistics(character)
+  rl.UnloadTexture(character.texture)
+  if stats != nil {
+    for capsule in stats.active_capsules {
+      detach(character, capsule.name)
+    }
+    for capsule in stats.inventory {
+      free(capsule)
+    }
+    delete_dynamic_array(stats.inventory)
+    delete_dynamic_array(stats.active_capsules)
+    delete_dynamic_array(stats.immunity)
   }
-  for capsule in character.inventory {
-    free(capsule)
-  }
-  delete_dynamic_array(character.inventory)
-  delete_dynamic_array(character.active_capsules)
-  delete_dynamic_array(character.immunity)
   free(character)
+}
+
+delete_room :: proc(room: ^Room) {
+  rl.UnloadTexture(room.texture)
+  free(room)
 }
 
 register_use :: proc(capsule: ^Capsule, use: CapsuleUse) {
@@ -236,17 +263,18 @@ register_on_detach :: proc(capsule: ^Capsule, on_detach: CapsuleOnDetach) {
 }
 
 register_capsule :: proc(owner: ^Character, capsule: ^Capsule) -> bool {
-  for c in owner.inventory {
+  stats := get_statistics(owner)
+  for c in stats.inventory {
     if c.name == capsule.name {
       return false
     }
   }
 
-  if len(owner.inventory) > owner.max_items {
+  if len(stats.inventory) > stats.max_items {
     return false
   }
 
-  append_elem(&owner.inventory, capsule)
+  append_elem(&stats.inventory, capsule)
   return true
 }
 
@@ -258,11 +286,27 @@ unset_flag :: proc(flags: ^Flags, flag: Flag) {
   flags^ -= {flag}
 }
 
+// get Statistics struct of a Character
+get_statistics :: proc(character: ^Character) -> ^Statistics {
+  switch t in character.variant {
+  case ^Player:
+    return &t.variant.(^Player).stats
+  case ^Enemy:
+    return &t.variant.(^Enemy).stats
+  case ^Boss:
+    return &t.variant.(^Boss).stats
+  case ^NonPlayer:
+    return nil
+  case:
+    return nil
+  }
+  return nil
+}
+
 get_capsule_from_inventory :: proc(owner: ^Character, capsule_name: string) -> ^Capsule {
-  /* 
-    Get a capsule from owner's inventory
-  */
-  for capsule in owner.inventory {
+  stats := get_statistics(owner)
+
+  for capsule in stats.inventory {
     if capsule.name == capsule_name {
         return capsule
     }
@@ -271,7 +315,8 @@ get_capsule_from_inventory :: proc(owner: ^Character, capsule_name: string) -> ^
 }
 
 get_active_capsule :: proc(target: ^Character, capsule_name: string) -> ^Capsule {
-  for capsule in target.active_capsules{
+  stats := get_statistics(target)
+  for capsule in stats.active_capsules{
     if capsule.name == capsule_name {
       return capsule
     }
@@ -280,7 +325,8 @@ get_active_capsule :: proc(target: ^Character, capsule_name: string) -> ^Capsule
 }
 
 activate :: proc(owner: ^Character, capsule_name: string) {
-  for capsule in owner.inventory {
+  stats := get_statistics(owner)
+  for capsule in stats.inventory {
     if capsule.name == capsule_name {
       capsule.active = true
       break
@@ -289,7 +335,8 @@ activate :: proc(owner: ^Character, capsule_name: string) {
 }
 
 deactivate :: proc(owner: ^Character, capsule_name: string) {
-  for capsule in owner.inventory {
+  stats := get_statistics(owner)
+  for capsule in stats.inventory {
     if capsule.name == capsule_name {
       capsule.active = false
       break
@@ -298,20 +345,21 @@ deactivate :: proc(owner: ^Character, capsule_name: string) {
 }
 
 attach :: proc(target: ^Character, capsule: ^Capsule) {
-  append_elem(&target.active_capsules, capsule)
+  stats := get_statistics(target)
+  append_elem(&stats.active_capsules, capsule)
 
-  if len(target.active_capsules) < 2 {
+  if len(stats.active_capsules) < 2 {
     return
   }
 
-  index := len(target.active_capsules) - 1
+  index := len(stats.active_capsules) - 1
 
   for {
     previous := index - 1
-    if target.active_capsules[index].priority < target.active_capsules[previous].priority {
-      swapped_capsule := target.active_capsules[index]
-      target.active_capsules[index] = target.active_capsules[previous]
-      target.active_capsules[previous] = swapped_capsule
+    if stats.active_capsules[index].priority < stats.active_capsules[previous].priority {
+      swapped_capsule := stats.active_capsules[index]
+      stats.active_capsules[index] = stats.active_capsules[previous]
+      stats.active_capsules[previous] = swapped_capsule
     }
     index = previous
     if index == 0 {
@@ -321,18 +369,19 @@ attach :: proc(target: ^Character, capsule: ^Capsule) {
 }
 
 is_attached :: proc(target: ^Character, capsule_name: string) -> bool {
-  for capsule in target.active_capsules {
+  stats := get_statistics(target)
+  for capsule in stats.active_capsules {
     if capsule.name == capsule_name {
       return true
     }
   }
-
   return false
 }
 
 detach :: proc(target: ^Character, capsule_name: string)  {
+  stats := get_statistics(target)
   index := -1
-  for capsule, i in target.active_capsules {
+  for capsule, i in stats.active_capsules {
     if capsule.name == capsule_name {
       if capsule.on_detach != nil {
         capsule.on_detach(target)
@@ -342,27 +391,29 @@ detach :: proc(target: ^Character, capsule_name: string)  {
     }
   }
   if index > -1 {
-    ordered_remove(&target.active_capsules, index)
+    ordered_remove(&stats.active_capsules, index)
   }
 }
 
 drop :: proc(owner: ^Character, capsule_name: string) {
+  stats := get_statistics(owner)
   index := -1
-  for capsule, i in owner.inventory {
+  for capsule, i in stats.inventory {
     if capsule.name == capsule_name {
       index = i
       break
     }
   }
   if index > -1 {
-    c := owner.inventory[index]
-    ordered_remove(&owner.inventory, index)
+    c := stats.inventory[index]
+    ordered_remove(&stats.inventory, index)
     free(c)
   }
 }
 
 character_actions :: proc(owner: ^Character) -> (action_list: [dynamic]string) {
-  for capsule in owner.inventory {
+  stats := get_statistics(owner)
+  for capsule in stats.inventory {
     if capsule.active {
       append_elem(&action_list, capsule.name)
     }
@@ -382,24 +433,26 @@ hurt :: proc(message: ^Response) {
     return
   }
 
-  target.health -= value
+  stats := get_statistics(target)
 
-  if target.health <= 0 {
-    target.health = 0
-    target.pain = 0
-    target.pain_rate = 0
+  stats.health -= value
+
+  if stats.health <= 0 {
+    stats.health = 0
+    stats.pain = 0
+    stats.pain_rate = 0
     set_flag(&flags, .DEAD)
-    if value >= target.max_health {
+    if value >= stats.max_health {
       set_flag(&flags, .OVERKILL)
     }
   }
 
-  if .NOPAIN not_in flags && target.health > 0 {
-    target.pain += value * target.pain_mul
-    target.pain_rate = target.pain * 100 / target.health
+  if .NOPAIN not_in flags && stats.health > 0 {
+    stats.pain += value * stats.pain_mul
+    stats.pain_rate = stats.pain * 100 / stats.health
   }
 
-  if target.pain_rate >= 100 {
+  if stats.pain_rate >= 100 {
     activate(message.target, "relieve")
   }
 }
@@ -409,17 +462,19 @@ hurt_direct :: proc(target: ^Character, dmg: int, pain: bool = true) -> Flag {
     return .NODAMAGE
   }
 
-  target.health -= dmg
+  stats := get_statistics(target)
+
+  stats.health -= dmg
 
   if pain {
-    target.pain += dmg * target.pain_mul
-    target.pain_rate = target.pain * 100 / target.health
+    stats.pain += dmg * stats.pain_mul
+    stats.pain_rate = stats.pain * 100 / stats.health
   }
 
-  if target.health <= 0 {
-    target.health = 0
-    target.pain = 0
-    target.pain_rate = 0
+  if stats.health <= 0 {
+    stats.health = 0
+    stats.pain = 0
+    stats.pain_rate = 0
     return .DEAD
   }
 
@@ -427,13 +482,14 @@ hurt_direct :: proc(target: ^Character, dmg: int, pain: bool = true) -> Flag {
 }
 
 heal :: proc(target: ^Character, hp: int = -1) {
+  stats := get_statistics(target)
   if hp == -1 {
-    health := target.max_health * target.healing / 100
-    target.health += health
+    health := stats.max_health * stats.healing / 100
+    stats.health += health
   } else {
-    target.health += hp
+    stats.health += hp
   }
-  if target.health > target.max_health {
-    target.health = target.max_health
+  if stats.health > stats.max_health {
+    stats.health = stats.max_health
   }
 }

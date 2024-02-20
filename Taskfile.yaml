@@ -1,0 +1,61 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task: test
+
+  run:
+    deps:
+      - build
+    cmds:
+      - bin/capital
+    aliases:
+      - r
+    silent: true
+    method: none
+
+  run-simple:
+    cmds:
+      - bin/capital
+    aliases:
+      - rs
+    silent: true
+
+  build:
+    cmds:
+      - odin build capital -out=bin/capital
+    aliases:
+      - b
+    silent: true
+    sources:
+      - ./capital/**/*.odin
+
+  build_debug:
+    cmds:
+      - odin build capital -out=bin/capital-debug -o:none -debug
+    aliases:
+      - bd
+    silent: true
+    sources:
+      - ./capital/**/*.odin
+    generates:
+      - bin/capital-debug
+
+  debug:
+    deps:
+      -  build_debug
+    cmds:
+      - gdb bin/capital-debug
+    aliases:
+      - d
+    silent: true
+    method: none
+
+  test:
+    cmds:
+      - odin test capital/tests/tests.odin -out:bin/tests -file
+    aliases:
+      - t
+    silent: true
+    method: none

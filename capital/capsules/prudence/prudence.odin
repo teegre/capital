@@ -30,8 +30,9 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   response.action = .ATTACK
 
   if success(source, target) {
-    response.value = roll(source.level + 5, source.strength * source.strength_mul)
-    if roll(100, 1) <= source.critical_rate {
+    stats := get_statistics(source)
+    response.value = roll(stats.level + 5, stats.strength * stats.strength_mul)
+    if roll(100, 1) <= stats.critical_rate {
       set_flag(&response.flags, .CRITICAL)
       response.value *= 2
     }
@@ -53,12 +54,13 @@ effect :: proc(message: ^entities.Response) {
 
   if message.action == .HURT && message.value > 0 {
     using message
+    stats := get_statistics(source)
 
-    if source.shield == 0 {
+    if stats.shield == 0 {
       set_flag(&flags, .PROTECT)
     }
 
     set_flag(&flags, .DETACH)
-    source.shield += value
+    stats.shield += value
   }
 }

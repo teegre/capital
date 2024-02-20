@@ -1,23 +1,21 @@
-package relieve
+package attack
 
 import "../../entities"
 import "../../rng"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
   using entities
+
   capsule := new(Capsule)
-  capsule.name = "relieve"
-  capsule.description = "relieve the pain"
+  capsule.name = "attack"
+  capsule.description = "standard attack"
   capsule.owner = owner
   capsule.default_target = .OTHER
-  capsule.active = false
+  capsule.active = true
 
   register_use(capsule, CapsuleUse(use))
 
-  if !register_capsule(owner, capsule) {
-    free(capsule)
-    return false
-  }
+  register_capsule(owner, capsule)
 
   return true
 }
@@ -30,22 +28,17 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   response.action = .ATTACK
 
   if success(source, target) {
-    response.value = roll(source.level + 5, source.strength * source.strength_mul)
-    if roll(100, 1) <= source.critical_rate {
+    stats := get_statistics(source)
+    response.value = roll(stats.level + 5, stats.strength * stats.strength_mul)
+    if roll(100, 1) <= stats.critical_rate {
       set_flag(&response.flags, .CRITICAL)
       response.value *= 2
     }
-    response.value *= source.pain_rate / 100
   } else {
     set_flag(&response.flags, .MISS)
-    return response
+    response.value = 0
   }
-  
-  heal(source)
-  set_flag(&response.flags, .HEAL)
-  source.pain = 0
-  source.pain_rate = 0
-  deactivate(source, "relieve")
 
+  response.initial_value = response.value
   return response
 }

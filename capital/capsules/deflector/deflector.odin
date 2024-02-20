@@ -3,11 +3,13 @@ package deflector
 import "../../entities"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
-  if len(owner.inventory) == owner.max_items {
+  using entities
+
+  stats := get_statistics(owner)
+
+  if len(stats.inventory) == stats.max_items {
     return false
   }
-
-  using entities
 
   capsule := new(Capsule)
   capsule.name = "deflector"

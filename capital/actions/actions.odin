@@ -40,7 +40,8 @@ apply_passive_capsule_effects :: proc(message: ^entities.Response, character: ^e
   defer delete_map(to_attach)
   defer delete_dynamic_array(to_detach)
 
-  for capsule in character.active_capsules {
+  stats := get_statistics(character)
+  for capsule in stats.active_capsules {
     if capsule.effect != nil {
       capsule.effect(message)
 

@@ -4,11 +4,11 @@ import "../../entities"
 import "../../rng"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
-  if len(owner.inventory) == owner.max_items {
-    return false
-  }
-
   using entities
+
+  // if len(owner.inventory) == owner.max_items {
+  //   return false
+  // }
 
   capsule := new(Capsule)
   capsule.name = "wreckage"
@@ -30,13 +30,15 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
 use :: proc(source, target: ^entities.Character) -> (response: entities.Response) {
   using entities, rng
 
+  stats := get_statistics(source)
+
   response.source = source
   response.target = target
   response.action = .ATTACK
 
   if success(source, target) {
-    response.value = roll(source.level + 5, source.strength * source.strength_mul)
-    if roll(100, 1) <= source.critical_rate {
+    response.value = roll(stats.level + 5, stats.strength * stats.strength_mul)
+    if roll(100, 1) <= stats.critical_rate {
       set_flag(&response.flags, .CRITICAL)
       response.value *= 2
     }

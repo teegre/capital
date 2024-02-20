@@ -28,7 +28,9 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
 use :: proc(source, target: ^entities.Character) -> (response: entities.Response) {
   using entities, rng
 
-  if source.shield == 0 {
+  stats := get_statistics(source)
+
+  if stats.shield == 0 {
     capsule := get_capsule_from_inventory(source, "shield")
     attach(source, capsule)
   }
@@ -36,9 +38,9 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   response.source = source
   response.target = source
   response.action = .DEFEND
-  response.value = roll(source.level + 5, source.defense * source.defense_mul)
+  response.value = roll(stats.level + 5, stats.defense * stats.defense_mul)
 
-  source.shield += response.value
+  stats.shield += response.value
 
   return response
 }
@@ -48,24 +50,25 @@ effect :: proc(message: ^entities.Response) {
 
   if message.action == .HURT {
     using message
+    stats := get_statistics(target)
 
     if .NODAMAGE not_in flags && .GUARDBREAK not_in flags {
-      if target.shield > 0 {
-        if value > target.shield {
+      if stats.shield > 0 {
+        if value > stats.shield {
           set_flag(&flags, .PARTIALBLOCK)
-          value -= target.shield
-          target.shield = 0
+          value -= stats.shield
+          stats.shield = 0
           set_flag(&flags, .DETACH)
-        } else if value < target.shield {
+        } else if value < stats.shield {
           set_flag(&flags, .BLOCKED)
-          target.shield -= value
+          stats.shield -= value
           value = 0
         }
       }
     }
 
     if .GUARDBREAK in flags {
-      target.shield = 0
+      stats.shield = 0
       set_flag(&flags, .DETACH)
     }
   }
