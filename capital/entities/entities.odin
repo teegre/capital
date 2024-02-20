@@ -9,6 +9,8 @@ import rl "vendor:raylib"
 Capsule :: struct {
   name: string,
   description: string,
+  texture: rl.Texture2D,
+  src, dest: rl.Rectangle,
   active: bool, // if active, capsule can be listed as an action for the owner.
   owner: ^Character,
   default_target: CapsuleTarget, // default target may be self or other.
@@ -175,26 +177,6 @@ Flags :: distinct bit_set[Flag]
 
 // TODO: COMBAT GROUP (Player(s) + Enemy(ies).
 
-// new_character :: proc() -> (c: ^Character) {
-//   c = new(Character)
-//   using c
-//   level = 1
-//   health = 50
-//   pain = 0
-//   pain_rate = 0
-//   shield = 0
-//   max_health = 50
-//   healing = 10
-//   critical_rate = 10
-//   strength = 1
-//   strength_mul = 1
-//   defense = 1
-//   defense_mul = 1
-//   agility = 1
-//   max_items = 4
-
-//   return c
-// }
 
 @(private)
 new_character :: proc($T: typeid) -> ^Character {
@@ -222,19 +204,48 @@ new_player :: proc(name: string , texture_path: cstring) -> ^Character {
   p.strength_mul = 1
   p.defense = 1
   p.defense_mul = 1
+  p.agility = 2
   p.max_items = 4
   p.speed = 1
 
   return c
 }
 
+new_enemy :: proc(name: string, texture_path: cstring) -> ^Character {
+  c := new_character(Enemy)
+  c.name = name
+  c.texture = rl.LoadTexture(texture_path)
+
+  e := c.variant.(^Enemy)
+  e.level = 1
+  e.health = 50
+  e.pain = 0
+  e.pain_rate = 0
+  e.pain_mul = 1
+  e.shield = 0
+  e.max_health = 50
+  e.healing = 10
+  e.critical_rate = 10
+  e.strength = 1
+  e.strength_mul = 1
+  e.defense = 1
+  e.defense_mul = 1
+  e.agility = 1
+  e.max_items = 4
+
+  return c
+}
+
 delete_character :: proc(character: ^Character) {
+  fmt.println(character.name)
   stats := get_statistics(character)
   rl.UnloadTexture(character.texture)
   if stats != nil {
+    fmt.println("Detaching active capsules...")
     for capsule in stats.active_capsules {
       detach(character, capsule.name)
     }
+    fmt.println("Deleting capsules...")
     for capsule in stats.inventory {
       free(capsule)
     }

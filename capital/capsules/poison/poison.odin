@@ -28,6 +28,8 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
 use :: proc(source, target: ^entities.Character) -> (response: entities.Response) {
   using entities, rng
 
+  stats := get_statistics(source)
+
   capsule := get_capsule_from_inventory(source, "poison")
   attach(target, capsule)
 
@@ -36,7 +38,7 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   response.source = source
   response.target = target
   response.action = .NONE
-  response.value = roll(source.level + 5, source.level)
+  response.value = roll(stats.level + 5, stats.level)
 
   capsule.value = response.value
 

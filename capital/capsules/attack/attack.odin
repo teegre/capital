@@ -2,6 +2,7 @@ package attack
 
 import "../../entities"
 import "../../rng"
+import rl "vendor:raylib"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
   using entities
@@ -9,6 +10,7 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
   capsule := new(Capsule)
   capsule.name = "attack"
   capsule.description = "standard attack"
+  capsule.texture = rl.LoadTexture("capital/resources/capsule.png")
   capsule.owner = owner
   capsule.default_target = .OTHER
   capsule.active = true

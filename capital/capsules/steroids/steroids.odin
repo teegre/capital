@@ -39,7 +39,7 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   attach(source, capsule)
 
   capsule.active = false
-  capsule.value = source.strength_mul
+  capsule.value = stats.strength_mul
   stats.strength_mul *= 2
 
   response.source = source

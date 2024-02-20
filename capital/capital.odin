@@ -1,14 +1,14 @@
 package main
 
 import rl "vendor:raylib"
-// import "core:log"
+import "core:log"
 import "entities"
 import "room"
-// import "capsules"
+import "capsules"
 
 running := true
-base_player: ^entities.Character
 player: ^entities.Player
+enemy: ^entities.Enemy
 player_indoor := true
 player_next_to_entrance := false
 player_next_to_exit := false
@@ -32,16 +32,32 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  base_player = entities.new_player("virginie", "capital/resources/virginie.png")
+  base_player := entities.new_player("virginie", "capital/resources/virginie.png")
   player = base_player.variant.(^entities.Player)
+
+  capsules.add_capsule_to_inventory(player, "attack")
+  capsules.add_capsule_to_inventory(player, "shield")
+  capsules.add_capsule_to_inventory(player, "relieve")
+
+  base_enemy := entities.new_enemy("square", "capital/resources/enemy.png")
+  enemy = base_enemy.variant.(^entities.Enemy)
+
+  capsules.add_capsule_to_inventory(enemy, "attack")
+  capsules.add_capsule_to_inventory(enemy, "shield")
+  capsules.add_capsule_to_inventory(enemy, "relieve")
+
   main_room = room.make_room("capital/resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
   // context.logger = log.create_console_logger()
-  // log.debugf("ROOM: %v", main_room)
+  // log.debugf("VIRGINIE: %v", player)
+  // log.debugf("SLIME: %v", enemy)
 
   player.src = {0, 0, TILE_SIZE, TILE_SIZE,}
   player.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.corridor.height + main_room.corridor.y - TILE_SIZE, TILE_SIZE, TILE_SIZE}
   player.direction = .UP
+
+  enemy.src = {0, 0, TILE_SIZE, TILE_SIZE}
+  enemy.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.area.y, TILE_SIZE, TILE_SIZE}
 
   camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
   camera.target = rl.Vector2{WIDTH/2, player.dest.y}
@@ -179,6 +195,7 @@ render :: proc() {
 }
 
 draw :: proc() {
+  origin: rl.Vector2 
   rl.DrawRectangleLines(0, 0, WIDTH, HEIGHT, rl.RED)
   room.draw_room(main_room)
   // DEBUG
@@ -229,8 +246,10 @@ draw :: proc() {
   //   rl.TextFormat("%d,%d", i32(player.dest.x), i32(player.dest.y)),
   //   i32(player.dest.x), i32(player.dest.y - 10), 1, rl.WHITE)
 
-  origin: rl.Vector2 = {player.dest.width - TILE_SIZE, player.dest.height - TILE_SIZE}
+  origin = {player.dest.width - TILE_SIZE, player.dest.height - TILE_SIZE}
   rl.DrawTexturePro(player.texture, player.src, player.dest, origin, 0, rl.WHITE)
+  origin = {enemy.dest.width - TILE_SIZE, enemy.dest.height - TILE_SIZE}
+  rl.DrawTexturePro(enemy.texture, enemy.src, enemy.dest, origin, 0, rl.WHITE)
 }
 
 input :: proc() {
@@ -255,6 +274,7 @@ input :: proc() {
 
 quit :: proc() {
   entities.delete_character(player)
+  entities.delete_character(enemy)
   entities.delete_room(main_room)
   rl.CloseWindow()
 }

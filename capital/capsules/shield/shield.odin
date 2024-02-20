@@ -2,6 +2,7 @@ package shield
 
 import "../../entities"
 import "../../rng"
+import rl "vendor:raylib"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
   using entities
@@ -9,6 +10,7 @@ new_capsule :: proc(owner: ^entities.Character) -> bool {
   capsule := new(Capsule)
   capsule.name = "shield"
   capsule.description = "standard shield"
+  capsule.texture = rl.LoadTexture("capital/resources/capsule.png")
   capsule.active = true
   capsule.owner = owner
   capsule.default_target = .SELF

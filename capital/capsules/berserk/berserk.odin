@@ -3,9 +3,9 @@ package berserk
 import "../../entities"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
-  if len(owner.inventory) == owner.max_items {
-    return false
-  }
+  // if len(owner.inventory) == owner.max_items {
+  //   return false
+  // }
 
   using entities
 

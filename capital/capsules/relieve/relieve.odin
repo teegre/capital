@@ -2,12 +2,14 @@ package relieve
 
 import "../../entities"
 import "../../rng"
+import rl "vendor:raylib"
 
 new_capsule :: proc(owner: ^entities.Character) -> bool {
   using entities
   capsule := new(Capsule)
   capsule.name = "relieve"
   capsule.description = "relieve the pain"
+  capsule.texture = rl.LoadTexture("capital/resources/capsule.png")
   capsule.owner = owner
   capsule.default_target = .OTHER
   capsule.active = false
@@ -45,8 +47,8 @@ use :: proc(source, target: ^entities.Character) -> (response: entities.Response
   
   heal(source)
   set_flag(&response.flags, .HEAL)
-  source.pain = 0
-  source.pain_rate = 0
+  stats.pain = 0
+  stats.pain_rate = 0
   deactivate(source, "relieve")
 
   return response
