@@ -7,8 +7,8 @@ import "room"
 import "capsules"
 
 running := true
-player: ^entities.Player
-enemy: ^entities.Enemy
+player: ^entities.Character
+enemy: ^entities.Character
 player_indoor := true
 player_next_to_entrance := false
 player_next_to_exit := false
@@ -20,6 +20,7 @@ r1, r2, r3, r4 : rl.Rectangle
 camera: rl.Camera2D
 
 TILE_SIZE :: 16
+PIXEL_HEIGHT :: 180
 
 frame_count: int = 0
 
@@ -32,19 +33,21 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  base_player := entities.new_player("virginie", "capital/resources/virginie.png")
-  player = base_player.variant.(^entities.Player)
+  player = entities.new_player("virginie", "capital/resources/virginie.png")
 
   capsules.add_capsule_to_inventory(player, "attack")
   capsules.add_capsule_to_inventory(player, "shield")
   capsules.add_capsule_to_inventory(player, "relieve")
 
-  base_enemy := entities.new_enemy("square", "capital/resources/enemy.png")
-  enemy = base_enemy.variant.(^entities.Enemy)
+  player.max_frame = 2
+
+  enemy = entities.new_enemy("square", "capital/resources/enemy.png")
 
   capsules.add_capsule_to_inventory(enemy, "attack")
   capsules.add_capsule_to_inventory(enemy, "shield")
   capsules.add_capsule_to_inventory(enemy, "relieve")
+
+  enemy.max_frame = 2
 
   main_room = room.make_room("capital/resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
@@ -59,13 +62,16 @@ init :: proc() {
   enemy.src = {0, 0, TILE_SIZE, TILE_SIZE}
   enemy.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.area.y, TILE_SIZE, TILE_SIZE}
 
-  camera.offset = rl.Vector2{WIDTH/2, HEIGHT/2}
-  camera.target = rl.Vector2{WIDTH/2, player.dest.y}
-  camera.zoom = 3.0
+  camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
+  camera.target = rl.Vector2{f32(rl.GetScreenWidth()/2), player.dest.y}
+  camera.zoom = f32(rl.GetScreenHeight() / PIXEL_HEIGHT)
 }
 
 update :: proc() {
+  camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
+  camera.zoom = f32(rl.GetScreenHeight() / PIXEL_HEIGHT)
   player.src.y = player.src.height * f32(player.direction)
+  enemy.src.y = enemy.src.height * f32(enemy.direction)
 
   if player_next_to_entrance && !main_room.entrance_locked && !main_room.entrance_opening && !main_room.entrance_opened  && ((player.direction == .DOWN && player_indoor) || (player.direction == .UP && !player_indoor)) {
     player.moving = false
@@ -142,15 +148,21 @@ update :: proc() {
 
   if frame_count % 6 == 1 {
     player.frame += 1
+    enemy.frame += 1
   }
 
   frame_count += 1
 
-  if player.frame > 2 {
+  if player.frame > player.max_frame {
     player.frame = 0
   }
 
+  if enemy.frame > enemy.max_frame {
+    enemy.frame = 0
+  }
+
   player.src.x = player.src.width * f32(player.frame)
+  enemy.src.x = enemy.src.width * f32(enemy.frame)
   if player.moving {
     player.src.y = player.src.height * (f32(player.direction) + 1)
   }

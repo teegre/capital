@@ -50,6 +50,10 @@ Character :: struct {
   src: rl.Rectangle,
   dest: rl.Rectangle,
   direction: Direction,
+  speed: f32,
+  frame: int,
+  max_frame: int,
+  moving: bool,
 
   variant: union {
     ^Player,
@@ -63,9 +67,6 @@ Character :: struct {
 Player :: struct {
   using character: Character,
   using stats: Statistics,
-  speed: f32,
-  frame: int,
-  moving: bool,
 }
 
 Enemy :: struct {
