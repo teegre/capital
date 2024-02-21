@@ -140,7 +140,7 @@ draw_room :: proc(room: ^entities.Room) {
       }
     } else {
       // Floor
-      src.x = 0
+      src.x = tile_size
       src.y = 3 * tile_size
     }
     rl.DrawTexturePro(room.texture, src, dest, origin, 0, rl.WHITE)
@@ -159,6 +159,9 @@ draw_corridor :: proc(room: ^entities.Room) {
   dest = {0, 0, tile_size, tile_size}
 
   for i in 0..<(w*h) {
+    if i % w == 0 { src.x = 0 }
+    else if i % w == w - 1 { src.x = 2 * tile_size }
+    else { src.x = tile_size }
     dest.x = room.corridor.x + dest.width * f32(i % w)
     dest.y = room.corridor.y + dest.height * f32(i / w)
     origin = {dest.width - tile_size, dest.height - tile_size}
