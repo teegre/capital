@@ -12,6 +12,7 @@ enemy: ^entities.Character
 player_indoor := true
 player_next_to_entrance := false
 player_next_to_exit := false
+player_step: int = 1
 
 main_room: ^entities.Room
 
@@ -20,7 +21,7 @@ r1, r2, r3, r4 : rl.Rectangle
 camera: rl.Camera2D
 
 TILE_SIZE :: 16
-PIXEL_HEIGHT :: 180
+SCREEN_SCALING :: 160
 
 frame_count: int = 0
 
@@ -33,13 +34,14 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  player = entities.new_player("virginie", "capital/resources/virginie.png")
+  player = entities.new_player("virginie", "capital/resources/virginie2.png")
 
   capsules.add_capsule_to_inventory(player, "attack")
   capsules.add_capsule_to_inventory(player, "shield")
   capsules.add_capsule_to_inventory(player, "relieve")
 
-  player.max_frame = 2
+  player.max_frame = 3
+  player.size = entities.Size{15, 23}
 
   enemy = entities.new_enemy("square", "capital/resources/enemy.png")
 
@@ -55,8 +57,8 @@ init :: proc() {
   // log.debugf("VIRGINIE: %v", player)
   // log.debugf("SLIME: %v", enemy)
 
-  player.src = {0, 0, TILE_SIZE, TILE_SIZE,}
-  player.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.corridor.height + main_room.corridor.y - TILE_SIZE, TILE_SIZE, TILE_SIZE}
+  player.src = {0, 0, player.size.w, player.size.h}
+  player.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.corridor.height + main_room.corridor.y - player.size.h , player.size.w, player.size.h}
   player.direction = .UP
 
   enemy.src = {0, 0, TILE_SIZE, TILE_SIZE}
@@ -64,12 +66,12 @@ init :: proc() {
 
   camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
   camera.target = rl.Vector2{f32(rl.GetScreenWidth()/2), player.dest.y}
-  camera.zoom = f32(rl.GetScreenHeight() / PIXEL_HEIGHT)
+  camera.zoom = f32(rl.GetScreenHeight() / SCREEN_SCALING)
 }
 
 update :: proc() {
   camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
-  camera.zoom = f32(rl.GetScreenHeight() / PIXEL_HEIGHT)
+  camera.zoom = f32(rl.GetScreenHeight() / SCREEN_SCALING)
   player.src.y = player.src.height * f32(player.direction)
   enemy.src.y = enemy.src.height * f32(enemy.direction)
 
@@ -124,8 +126,8 @@ update :: proc() {
       if player.dest.x > main_room.area.x + main_room.area.width - player.dest.width {
         player.dest.x = main_room.area.x + main_room.area.width - player.dest.width
       }
-      if player.dest.y < main_room.area.y {
-        player.dest.y = main_room.area.y
+      if player.dest.y < main_room.area.y - TILE_SIZE {
+        player.dest.y = main_room.area.y - TILE_SIZE
       }
       if player.dest.y > main_room.area.y + main_room.area.height - player.dest.height {
         player.dest.y = main_room.area.y + main_room.area.height - player.dest.height
@@ -140,21 +142,27 @@ update :: proc() {
       if player.dest.y < -player.dest.height / 2 {
         player.dest.y = -player.dest.height / 2
       }
-      if player.dest.y > HEIGHT - (player.dest.height / 2){
-        player.dest.y = HEIGHT - (player.dest.height / 2)
+      if player.dest.y > HEIGHT - player.size.h {
+        player.dest.y = HEIGHT - player.size.h
       }
     }
   }
 
-  if frame_count % 6 == 1 {
-    player.frame += 1
+  if frame_count % 6 == 0 {
     enemy.frame += 1
+    player.frame += player_step
   }
 
   frame_count += 1
 
-  if player.frame > player.max_frame {
+  if player.frame > player.max_frame  - 1 {
+    player.frame = player.max_frame - 1
+    player_step = -1
+  }
+
+  if player.frame < 0 {
     player.frame = 0
+    player_step = 1
   }
 
   if enemy.frame > enemy.max_frame {
@@ -246,7 +254,7 @@ draw :: proc() {
   // rl.DrawLine(WIDTH/2, 0, WIDTH/2, HEIGHT, rl.RED)
   // rl.DrawLine(0, HEIGHT/2, WIDTH, HEIGHT/2, rl.RED)
 
-  // rl.DrawRectangle(i32(player.dest.x), i32(player.dest.y), i32(player.dest.width), i32(player.dest.height), rl.WHITE) // PLAYER
+  // rl.DrawRectangleLines(i32(player.dest.x), i32(player.dest.y), i32(player.dest.width), i32(player.dest.height), rl.WHITE) // PLAYER
   // rl.DrawRectangle(i32(r1.x), i32(r1.y), i32(r1.width), i32(r1.height), rl.RED) // OUTSIDE WALLS
   // rl.DrawRectangle(i32(r2.x), i32(r2.y), i32(r2.width), i32(r2.height), rl.YELLOW) // LIVING AREA
   // rl.DrawRectangle(i32(r3.x), i32(r3.y), i32(r3.width), i32(r3.height), rl.GREEN) // DOOR
@@ -255,10 +263,10 @@ draw :: proc() {
   //   rl.TextFormat("area: %d,%d", i32(main_room.area.x), i32(main_room.area.y)),
   //   i32(main_room.area.x), i32(main_room.area.y), 2, rl.WHITE)
   // rl.DrawText(
-  //   rl.TextFormat("%d,%d", i32(player.dest.x), i32(player.dest.y)),
-  //   i32(player.dest.x), i32(player.dest.y - 10), 1, rl.WHITE)
+      // rl.TextFormat("%d/%d", i32(player.frame), i32(player_step)),
+    // i32(player.dest.x - 3), i32(player.dest.y - 10), 1, rl.WHITE)
 
-  origin = {player.dest.width - TILE_SIZE, player.dest.height - TILE_SIZE}
+  origin = {player.dest.width - player.size.w, player.dest.height - player.size.h}
   rl.DrawTexturePro(player.texture, player.src, player.dest, origin, 0, rl.WHITE)
   origin = {enemy.dest.width - TILE_SIZE, enemy.dest.height - TILE_SIZE}
   rl.DrawTexturePro(enemy.texture, enemy.src, enemy.dest, origin, 0, rl.WHITE)
@@ -281,6 +289,10 @@ input :: proc() {
     } else if rl.IsKeyPressed(SPACE) {
       main_room.entrance_locked = !main_room.entrance_locked
       main_room.exit_locked = !main_room.exit_locked
+    } else if rl.IsKeyPressed(EQUAL) {
+      camera.zoom += 1.0
+    } else if rl.IsKeyPressed(MINUS) {
+      camera.zoom -= 1.0
     }
 }
 

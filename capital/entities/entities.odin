@@ -23,37 +23,19 @@ Capsule :: struct {
 }
 
 // A character
-Statistics :: struct {
-  level: int,
-  health: int,
-  pain: int,
-  pain_mul: int,
-  pain_rate: int,
-  shield: int,
-  max_health: int,
-  healing: int,
-  critical_rate: int,
-  strength: int,
-  defense: int,
-  agility: int,
-  strength_mul: int,
-  defense_mul: int,
-  max_items: int,
-  immunity: [dynamic]string,
-  active_capsules: [dynamic]^Capsule, // NOTE: why not using a map?
-  inventory: [dynamic]^Capsule,
-}
-
 Character :: struct {
   name: string,
   texture: rl.Texture2D,
+  size: Size,
   src: rl.Rectangle,
   dest: rl.Rectangle,
   direction: Direction,
+  layer: u8,
   speed: f32,
   frame: int,
   max_frame: int,
   moving: bool,
+  blink: bool,
 
   variant: union {
     ^Player,
@@ -81,6 +63,32 @@ Boss :: struct {
 
 NonPlayer :: struct {
   using character: Character,
+}
+
+// Character statistics
+Statistics :: struct {
+  level: int,
+  health: int,
+  pain: int,
+  pain_mul: int,
+  pain_rate: int,
+  shield: int,
+  max_health: int,
+  healing: int,
+  critical_rate: int,
+  strength: int,
+  defense: int,
+  agility: int,
+  strength_mul: int,
+  defense_mul: int,
+  max_items: int,
+  immunity: [dynamic]string,
+  active_capsules: [dynamic]^Capsule, // NOTE: why not using a map?
+  inventory: [dynamic]^Capsule,
+}
+
+Size :: struct {
+  w, h: f32,
 }
 
 Direction :: enum {
