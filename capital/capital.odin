@@ -55,7 +55,7 @@ init :: proc() {
   capsules.add_capsule_to_inventory(enemy, "relieve")
 
   enemy.max_frame = 2
-  enemy.size = entities.Size{16, 16}
+  enemy.size = entities.Size{15, 23}
 
   main_room = room.make_room("capital/resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
@@ -71,8 +71,8 @@ init :: proc() {
   player.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.corridor.height + main_room.corridor.y - player.size.h , player.size.w, player.size.h}
   player.direction = .UP
 
-  enemy.src = {0, 0, TILE_SIZE, TILE_SIZE}
-  enemy.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.area.y, TILE_SIZE, TILE_SIZE}
+  enemy.src = {0, 0, enemy.size.w, enemy.size.h}
+  enemy.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.area.y, enemy.size.w, enemy.size.h}
 
   camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
   camera.target = rl.Vector2{f32(rl.GetScreenWidth()/2), player.dest.y}
