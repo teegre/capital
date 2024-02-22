@@ -4,6 +4,7 @@ import rl "vendor:raylib"
 import "core:log"
 import "entities"
 import "room"
+import "scene"
 import "capsules"
 
 running := true
@@ -16,6 +17,8 @@ player_step: int = 1
 
 main_room: ^entities.Room
 
+main_scene: ^scene.Scene
+
 r1, r2, r3, r4 : rl.Rectangle
 
 camera: rl.Camera2D
@@ -27,6 +30,8 @@ frame_count: int = 0
 
 WIDTH :: 960
 HEIGHT :: 560
+
+zoom: f32
 
 init :: proc() {
 
@@ -50,12 +55,17 @@ init :: proc() {
   capsules.add_capsule_to_inventory(enemy, "relieve")
 
   enemy.max_frame = 2
+  enemy.size = entities.Size{16, 16}
 
   main_room = room.make_room("capital/resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
+  main_scene = new(scene.Scene)
+  scene.add_to_scene(main_scene, main_room)
+  scene.add_to_scene(main_scene, player)
+  scene.add_to_scene(main_scene, enemy)
+
   // context.logger = log.create_console_logger()
-  // log.debugf("VIRGINIE: %v", player)
-  // log.debugf("SLIME: %v", enemy)
+  // log.debugf("SCENE: %v", main_scene)
 
   player.src = {0, 0, player.size.w, player.size.h}
   player.dest = {(WIDTH/2)-(TILE_SIZE/2), main_room.corridor.height + main_room.corridor.y - player.size.h , player.size.w, player.size.h}
@@ -71,7 +81,7 @@ init :: proc() {
 
 update :: proc() {
   camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
-  camera.zoom = f32(rl.GetScreenHeight() / SCREEN_SCALING)
+  camera.zoom = f32(rl.GetScreenHeight() / SCREEN_SCALING) + zoom
   player.src.y = player.src.height * f32(player.direction)
   enemy.src.y = enemy.src.height * f32(enemy.direction)
 
@@ -215,9 +225,9 @@ render :: proc() {
 }
 
 draw :: proc() {
-  origin: rl.Vector2 
   rl.DrawRectangleLines(0, 0, WIDTH, HEIGHT, rl.RED)
-  room.draw_room(main_room)
+  scene.render_scene(main_scene)
+  // room.draw_room(main_room)
   // DEBUG
   // rl.DrawCircle(WIDTH/2, HEIGHT/2, 8, rl.SKYBLUE)
   // rl.DrawRectangleLines(
@@ -265,11 +275,6 @@ draw :: proc() {
   // rl.DrawText(
       // rl.TextFormat("%d/%d", i32(player.frame), i32(player_step)),
     // i32(player.dest.x - 3), i32(player.dest.y - 10), 1, rl.WHITE)
-
-  origin = {player.dest.width - player.size.w, player.dest.height - player.size.h}
-  rl.DrawTexturePro(player.texture, player.src, player.dest, origin, 0, rl.WHITE)
-  origin = {enemy.dest.width - TILE_SIZE, enemy.dest.height - TILE_SIZE}
-  rl.DrawTexturePro(enemy.texture, enemy.src, enemy.dest, origin, 0, rl.WHITE)
 }
 
 input :: proc() {
@@ -289,14 +294,16 @@ input :: proc() {
     } else if rl.IsKeyPressed(SPACE) {
       main_room.entrance_locked = !main_room.entrance_locked
       main_room.exit_locked = !main_room.exit_locked
-    } else if rl.IsKeyPressed(EQUAL) {
-      camera.zoom += 1.0
-    } else if rl.IsKeyPressed(MINUS) {
-      camera.zoom -= 1.0
+    } else if rl.IsKeyPressed(W) {
+      zoom += 0.1
+    } else if rl.IsKeyPressed(Q) {
+      zoom -= 0.1
     }
 }
 
 quit :: proc() {
+  delete_dynamic_array(main_scene.characters)
+  free(main_scene)
   entities.delete_character(player)
   entities.delete_character(enemy)
   entities.delete_room(main_room)
