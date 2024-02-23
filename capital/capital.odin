@@ -46,7 +46,7 @@ init :: proc() {
   capsules.add_capsule_to_inventory(player, "relieve")
 
   player.max_frame = 3
-  player.size = entities.Size{15, 23}
+  player.size = entities.Size{15, 19}
 
   enemy = entities.new_enemy("square", "capital/resources/enemy.png")
 
