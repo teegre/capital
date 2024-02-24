@@ -46,7 +46,7 @@ render_scene :: proc(scene: ^Scene) {
 draw_shadow :: proc(character: ^entities.Character) {
   color := rl.Color{0, 0, 0, 100}
   rl.DrawCircle(
-    i32(character.dest.x + (character.size.w / 2)),
+    i32(character.dest.x + (character.size.w / 2) + 1),
     i32(character.dest.y + character.size.h - 1),
     character.size.h / 4, color)
 }
