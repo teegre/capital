@@ -57,7 +57,7 @@ init :: proc() {
   enemy.max_frame = 2
   enemy.size = entities.Size{15, 23}
 
-  main_room = room.make_room("capital/resources/room-a.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
+  main_room = room.make_room("capital/resources/room-d.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE)
 
   main_scene = new(scene.Scene)
   scene.add_to_scene(main_scene, main_room)

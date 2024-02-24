@@ -38,6 +38,15 @@ render_scene :: proc(scene: ^Scene) {
   room.draw_room(scene.room)
   for character in scene.characters {
     origin = {character.dest.width - character.size.w, character.dest.height - character.size.h}
+    draw_shadow(character)
     rl.DrawTexturePro(character.texture, character.src, character.dest, origin, 0, rl.WHITE)
   }
+}
+
+draw_shadow :: proc(character: ^entities.Character) {
+  color := rl.Color{0, 0, 0, 100}
+  rl.DrawCircle(
+    i32(character.dest.x + (character.size.w / 2)),
+    i32(character.dest.y + character.size.h - 1),
+    character.size.h / 4, color)
 }
