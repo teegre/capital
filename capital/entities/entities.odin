@@ -215,7 +215,7 @@ new_player :: proc(name: string , texture_path: cstring) -> ^Character {
   p.defense_mul = 1
   p.agility = 2
   p.max_items = 4
-  p.speed = 1
+  p.speed = 0.5
 
   return c
 }

@@ -4,9 +4,13 @@ import rl "vendor:raylib"
 import "../entities"
 import "../room"
 
+SCREEN_SCALING :: 160
+
 Scene :: struct {
   room: ^entities.Room,
   mode: Mode,
+  camera: rl.Camera2D,
+  zoom: f32,
   characters: [dynamic]^entities.Character,
 }
 
@@ -33,6 +37,15 @@ add_to_scene :: proc(scene: ^Scene, entity: Entity) -> bool {
   return false
 }
 
+update_camera :: proc(scene: ^Scene) {
+  scene.camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
+  scene.camera.zoom = f32(rl.GetScreenHeight() / SCREEN_SCALING) + scene.zoom
+}
+
+update_scene :: proc(scene: ^Scene) {
+  update_camera(scene)
+}
+
 render_scene :: proc(scene: ^Scene) {
   origin: rl.Vector2
   room.draw_room(scene.room)
@@ -50,3 +63,5 @@ draw_shadow :: proc(character: ^entities.Character) {
     i32(character.dest.y + character.size.h - 1),
     character.size.h / 4, color)
 }
+
+
