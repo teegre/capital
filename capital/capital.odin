@@ -10,6 +10,7 @@ import "capsules"
 running := true
 player: ^entities.Character
 enemy: ^entities.Character
+nurse: ^entities.Character
 player_indoor := true
 player_next_to_entrance := false
 player_next_to_exit := false
@@ -18,8 +19,6 @@ player_step: int = 1
 the_scene: ^scene.Scene
 
 r1, r2, r3, r4 : rl.Rectangle
-
-TILE_SIZE :: 16
 
 frame_count: int = 0
 
@@ -39,8 +38,15 @@ init :: proc() {
   capsules.add_capsule_to_inventory(player, "relieve")
 
   player.max_frame = 3
-  player.size = entities.Size{15, 19}
+  player.frame_step = 1
+  player.size = {15, 19}
   player.layer = 1
+
+  nurse = entities.new_npc("nurse", "capital/resources/nurse-a.png")
+  nurse.frame = 1
+  nurse.frame_step = 1
+  nurse.max_frame = 3
+  nurse.size = {15, 21}
 
   enemy = entities.new_enemy("square", "capital/resources/enemy.png")
 
@@ -49,20 +55,30 @@ init :: proc() {
   capsules.add_capsule_to_inventory(enemy, "relieve")
 
   enemy.max_frame = 2
-  enemy.size = entities.Size{15, 23}
+  enemy.frame_step = 1
+  enemy.size = {15, 23}
 
   the_scene = new(scene.Scene)
 
-  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-d.png", WIDTH, HEIGHT, 7, 7, TILE_SIZE))
+  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-d.png", WIDTH, HEIGHT, 7, 7, scene.TILE_SIZE))
   scene.add_to_scene(the_scene, player)
   scene.add_to_scene(the_scene, enemy)
+  scene.add_to_scene(the_scene, nurse)
 
   player.src = {0, 0, player.size.w, player.size.h}
-  player.dest = {(WIDTH/2)-(TILE_SIZE/2), the_scene.room.corridor.height + the_scene.room.corridor.y - player.size.h , player.size.w, player.size.h}
+  player.dest = {(WIDTH/2)-(scene.TILE_SIZE/2), the_scene.room.corridor.height + the_scene.room.corridor.y - player.size.h , player.size.w, player.size.h}
   player.direction = .UP
 
+  nurse.src = {0, 0, nurse.size.w, nurse.size.h}
+  nurse.dest = {
+    the_scene.room.room.x + scene.TILE_SIZE,
+    the_scene.room.room.y + the_scene.room.room.height + (nurse.size.h / 4),
+    nurse.size.w,
+    nurse.size.h,
+  }
+
   enemy.src = {0, 0, enemy.size.w, enemy.size.h}
-  enemy.dest = {(WIDTH/2)-(TILE_SIZE/2), the_scene.room.area.y, enemy.size.w, enemy.size.h}
+  enemy.dest = {(WIDTH/2)-(scene.TILE_SIZE/2), the_scene.room.area.y, enemy.size.w, enemy.size.h}
 
   the_scene.camera.offset = {f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
   the_scene.camera.target = {f32(rl.GetScreenWidth()/2), player.dest.y}
@@ -71,8 +87,8 @@ init :: proc() {
 update :: proc() {
   scene.update_character_layers(the_scene, player)
   scene.update_scene(the_scene)
-  player.src.y = player.src.height * f32(player.direction)
-  enemy.src.y = enemy.src.height * f32(enemy.direction)
+  // player.src.y = player.src.height * f32(player.direction)
+  // enemy.src.y = enemy.src.height * f32(enemy.direction)
 
   if player_next_to_entrance && !the_scene.room.entrance_locked && !the_scene.room.entrance_opening && !the_scene.room.entrance_opened  && ((player.direction == .DOWN && player_indoor) || (player.direction == .UP && !player_indoor)) {
     player.moving = false
@@ -125,8 +141,8 @@ update :: proc() {
       if player.dest.x > the_scene.room.area.x + the_scene.room.area.width - player.dest.width {
         player.dest.x = the_scene.room.area.x + the_scene.room.area.width - player.dest.width
       }
-      if player.dest.y < the_scene.room.area.y - TILE_SIZE {
-        player.dest.y = the_scene.room.area.y - TILE_SIZE
+      if player.dest.y < the_scene.room.area.y - scene.TILE_SIZE {
+        player.dest.y = the_scene.room.area.y - scene.TILE_SIZE
       }
       if player.dest.y > the_scene.room.area.y + the_scene.room.area.height - player.dest.height {
         player.dest.y = the_scene.room.area.y + the_scene.room.area.height - player.dest.height
@@ -148,36 +164,14 @@ update :: proc() {
   }
 
   if frame_count % 6 == 0 {
-    enemy.frame += 1
-    player.frame += player_step
+    scene.animate(the_scene)
   }
 
   frame_count += 1
 
-  if player.frame > player.max_frame  - 1 {
-    player.frame = player.max_frame - 1
-    player_step = -1
-  }
-
-  if player.frame < 0 {
-    player.frame = 0
-    player_step = 1
-  }
-
-  if enemy.frame > enemy.max_frame {
-    enemy.frame = 0
-  }
-
-  player.src.x = player.src.width * f32(player.frame)
-  enemy.src.x = enemy.src.width * f32(enemy.frame)
-  if player.moving {
-    player.src.y = player.src.height * (f32(player.direction) + 1)
-  }
-
-  player.moving = false
-
   running = !rl.WindowShouldClose()
   check_collision()
+  scene.check_collisions(the_scene, player)
 }
 
 manage_camera :: proc() {
@@ -200,8 +194,8 @@ check_collision :: proc() {
   r3 = rl.GetCollisionRec(player.dest, the_scene.room.entrance)
   r4 = rl.GetCollisionRec(player.dest, the_scene.room.exit)
   player_indoor = rl.CheckCollisionRecs(player.dest, the_scene.room.area)
-  player_next_to_entrance = (r3.width > TILE_SIZE - 4) && !the_scene.room.entrance_locked
-  player_next_to_exit = (r4.width > TILE_SIZE - 4) && !the_scene.room.exit_locked
+  player_next_to_entrance = (r3.width > scene.TILE_SIZE - 4) && !the_scene.room.entrance_locked
+  player_next_to_exit = (r4.width > scene.TILE_SIZE - 4) && !the_scene.room.exit_locked
 }
 
 render :: proc() {
@@ -252,7 +246,18 @@ draw :: proc() {
   // rl.DrawLine(WIDTH/2, 0, WIDTH/2, HEIGHT, rl.RED)
   // rl.DrawLine(0, HEIGHT/2, WIDTH, HEIGHT/2, rl.RED)
 
-  // rl.DrawRectangleLines(i32(player.dest.x), i32(player.dest.y), i32(player.dest.width), i32(player.dest.height), rl.WHITE) // PLAYER
+  // rl.DrawRectangleLines(
+  //   i32(enemy.dest.x),
+  //   i32(enemy.dest.y),
+  //   i32(enemy.dest.width),
+  //   i32(enemy.dest.height),
+  //   rl.BLUE) // ENEMY
+  // rl.DrawRectangleLines(
+  //   i32(player.dest.x),
+  //   i32(player.dest.y),
+  //   i32(player.dest.width),
+  //   i32(player.dest.height),
+  //   rl.BLUE) // PLAYER
   // rl.DrawRectangle(i32(r1.x), i32(r1.y), i32(r1.width), i32(r1.height), rl.RED) // OUTSIDE WALLS
   // rl.DrawRectangle(i32(r2.x), i32(r2.y), i32(r2.width), i32(r2.height), rl.YELLOW) // LIVING AREA
   // rl.DrawRectangle(i32(r3.x), i32(r3.y), i32(r3.width), i32(r3.height), rl.GREEN) // DOOR
@@ -260,9 +265,9 @@ draw :: proc() {
   // rl.DrawText(
   //   rl.TextFormat("area: %d,%d", i32(the_scene.room.area.x), i32(the_scene.room.area.y)),
   //   i32(the_scene.room.area.x), i32(the_scene.room.area.y), 2, rl.WHITE)
-  rl.DrawText(
-      rl.TextFormat("%d/%d", player.layer, enemy.layer),
-    i32(player.dest.x - 3), i32(player.dest.y - 10), 1, rl.WHITE)
+  // rl.DrawText(
+  //     rl.TextFormat("%d/%d", player.layer, enemy.layer),
+  //   i32(player.dest.x - 3), i32(player.dest.y - 10), 1, rl.WHITE)
 }
 
 input :: proc() {
@@ -288,9 +293,9 @@ input :: proc() {
       the_scene.room.entrance_locked = !the_scene.room.entrance_locked
       the_scene.room.exit_locked = !the_scene.room.exit_locked
     } else if rl.IsKeyPressed(W) {
-      the_scene.camera.zoom += 0.1
+      the_scene.zoom += 0.1
     } else if rl.IsKeyPressed(Q) {
-      the_scene.camera.zoom -= 0.1
+      the_scene.zoom -= 0.1
     }
 }
 
@@ -299,6 +304,7 @@ quit :: proc() {
   free(the_scene)
   entities.delete_character(player)
   entities.delete_character(enemy)
+  entities.delete_character(nurse)
   entities.delete_room(the_scene.room)
   rl.CloseWindow()
 }

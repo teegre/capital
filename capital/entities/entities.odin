@@ -34,6 +34,7 @@ Character :: struct {
   speed: f32,
   frame: int,
   max_frame: int,
+  frame_step: int,
   moving: bool,
   blink: bool,
 
@@ -245,10 +246,18 @@ new_enemy :: proc(name: string, texture_path: cstring) -> ^Character {
   return c
 }
 
+new_npc :: proc(name: string, texture_path: cstring) -> ^Character {
+  c := new_character(NonPlayer)
+  c.name = name
+  c.texture = rl.LoadTexture(texture_path)
+
+  return c
+}
+
 delete_character :: proc(character: ^Character) {
   fmt.println(character.name)
-  stats := get_statistics(character)
   rl.UnloadTexture(character.texture)
+  stats := get_statistics(character)
   if stats != nil {
     fmt.println("Detaching active capsules...")
     for capsule in stats.active_capsules {
