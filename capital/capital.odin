@@ -40,6 +40,7 @@ init :: proc() {
 
   player.max_frame = 3
   player.size = entities.Size{15, 19}
+  player.layer = 1
 
   enemy = entities.new_enemy("square", "capital/resources/enemy.png")
 
@@ -68,6 +69,7 @@ init :: proc() {
 }
 
 update :: proc() {
+  scene.update_character_layers(the_scene, player)
   scene.update_scene(the_scene)
   player.src.y = player.src.height * f32(player.direction)
   enemy.src.y = enemy.src.height * f32(enemy.direction)
@@ -258,9 +260,9 @@ draw :: proc() {
   // rl.DrawText(
   //   rl.TextFormat("area: %d,%d", i32(the_scene.room.area.x), i32(the_scene.room.area.y)),
   //   i32(the_scene.room.area.x), i32(the_scene.room.area.y), 2, rl.WHITE)
-  // rl.DrawText(
-      // rl.TextFormat("%d/%d", i32(player.frame), i32(player_step)),
-    // i32(player.dest.x - 3), i32(player.dest.y - 10), 1, rl.WHITE)
+  rl.DrawText(
+      rl.TextFormat("%d/%d", player.layer, enemy.layer),
+    i32(player.dest.x - 3), i32(player.dest.y - 10), 1, rl.WHITE)
 }
 
 input :: proc() {

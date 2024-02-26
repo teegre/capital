@@ -48,11 +48,18 @@ update_scene :: proc(scene: ^Scene) {
 
 render_scene :: proc(scene: ^Scene) {
   origin: rl.Vector2
+  layer: u8 = 0
+
   room.draw_room(scene.room)
-  for character in scene.characters {
-    origin = {character.dest.width - character.size.w, character.dest.height - character.size.h}
-    draw_shadow(character)
-    rl.DrawTexturePro(character.texture, character.src, character.dest, origin, 0, rl.WHITE)
+  for layer < 3 {
+    for character in scene.characters {
+      if character.layer == layer {
+        draw_shadow(character)
+        origin = {character.dest.width - character.size.w, character.dest.height - character.size.h}
+        rl.DrawTexturePro(character.texture, character.src, character.dest, origin, 0, rl.WHITE)
+      }
+    }
+    layer += 1
   }
 }
 
@@ -64,4 +71,16 @@ draw_shadow :: proc(character: ^entities.Character) {
     character.size.h / 4, color)
 }
 
-
+// Calculate character layer according to player's position.
+update_character_layers :: proc(scene: ^Scene, player: ^entities.Character) {
+  for character in scene.characters {
+    enemy, ok := character.variant.(^entities.Enemy)
+    if ok {
+      if character.dest.y + (character.dest.height / 2) < player.dest.y + (player.dest.height / 2) {
+        character.layer = player.layer - 1
+      } else {
+        character.layer = player.layer + 1
+      }
+    }
+  }
+}
