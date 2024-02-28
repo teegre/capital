@@ -213,7 +213,7 @@ check_collisions :: proc(scene: ^Scene) {
       collision_rec = rl.GetCollisionRec(player.dest, character.dest)
 
       vert_x_overlap := collision_rec.height >= character.dest.width / 2
-      vert_y_overlap := collision_rec.width >= character.dest.width / 8 // tolerance
+      vert_y_overlap := collision_rec.width >= character.dest.width / 4 // tolerance
       hor_x_overlap := collision_rec.height >= character.dest.width / 4
 
       switch player.direction {

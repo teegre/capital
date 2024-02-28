@@ -7,17 +7,12 @@ import "scene"
 import "capsules"
 
 love := true
+
 player: ^entities.Character
 enemy: ^entities.Character
 nurse: ^entities.Character
-player_indoor := true
-player_next_to_entrance := false
-player_next_to_exit := false
-player_step: int = 1
 
 the_scene: ^scene.Scene
-
-r1, r2, r3, r4 : rl.Rectangle
 
 frame_count: int = 0
 
