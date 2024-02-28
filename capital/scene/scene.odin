@@ -6,6 +6,8 @@ import "../room"
 
 SCREEN_SCALING :: 160
 TILE_SIZE :: 16
+WIDTH :: 960
+HEIGHT :: 560
 
 Scene :: struct {
   room: ^entities.Room,
@@ -38,13 +40,42 @@ add_to_scene :: proc(scene: ^Scene, entity: Entity) -> bool {
   return false
 }
 
+get_player :: proc(scene: ^Scene) -> ^entities.Character {
+  for character in scene.characters {
+    player, ok := character.variant.(^entities.Player)
+    if ok {
+      return player
+    }
+  }
+  return nil
+}
+
 update_camera :: proc(scene: ^Scene) {
-  scene.camera.offset = rl.Vector2{f32(rl.GetScreenWidth()/2), f32(rl.GetScreenHeight()/2)}
+  player := get_player(scene)
+  scene.camera.offset = rl.Vector2{f32(rl.GetScreenWidth() / 2), f32(rl.GetScreenHeight() / 2)}
   scene.camera.zoom = f32(rl.GetScreenHeight() / SCREEN_SCALING) + scene.zoom
+  if is_indoor(scene, player) {
+    scene.camera.target = {
+      WIDTH / 2,
+      // f32(rl.GetScreenWidth() / 2),
+      scene.room.area.y + (scene.room.area.height / 2),
+    }
+  } else {
+    scene.camera.target = {
+      WIDTH / 2,
+      // f32(rl.GetScreenWidth() / 2),
+      player.dest.y,
+    }
+  }
 }
 
 update_scene :: proc(scene: ^Scene) {
+  check_collisions(scene)
   update_camera(scene)
+  update_character_layers(scene)
+  player := get_player(scene)
+  trigger_entrance_door(scene, player)
+  trigger_exit_door(scene, player)
 }
 
 animate :: proc(scene: ^Scene) {
@@ -92,12 +123,29 @@ draw_shadow :: proc(character: ^entities.Character) {
 }
 
 // Calculate characters' layer according to player's position.
-update_character_layers :: proc(scene: ^Scene, player: ^entities.Character) {
+update_character_layers :: proc(scene: ^Scene) {
+  player := get_player(scene)
+  pty := player.dest.y
+  pby := player.dest.y + player.dest.height
+  pmy := player.dest.y + (player.dest.height / 2)
+  player_indoor := is_indoor(scene, player)
+
   for character in scene.characters {
+    if is_indoor(scene, character) != player_indoor {
+      continue
+    }
     _, ok := character.variant.(^entities.Player)
     if !ok {
-      if character.dest.y + (character.dest.height / 2) < player.dest.y + (player.dest.height / 2) {
+      cby := character.dest.y + character.dest.height
+      cmy := character.dest.y + (character.dest.height / 2)
+
+      // FRONT
+      if cmy < pty && cby < pmy {
         character.layer = player.layer - 1
+      // SAME
+      } else if cmy < pby {
+        character.layer = player.layer
+      // BEHIND
       } else {
         character.layer = player.layer + 1
       }
@@ -111,46 +159,115 @@ is_indoor :: proc(scene: ^Scene, character: ^entities.Character) -> bool {
 
 is_next_to_entrance :: proc(scene: ^Scene, character: ^entities.Character) -> bool {
   entrance_collision_rec := rl.GetCollisionRec(character.dest, scene.room.entrance)
-  dir := character.direction == .UP || character.direction == .DOWN
-  return entrance_collision_rec.width > TILE_SIZE - 4 && !scene.room.entrance_locked && dir
+  return entrance_collision_rec.width > TILE_SIZE - 4 && !scene.room.entrance_locked
 }
 
 is_next_to_exit :: proc(scene: ^Scene, character: ^entities.Character) -> bool {
   exit_collision_rec := rl.GetCollisionRec(character.dest, scene.room.exit)
-  dir := character.direction == .UP || character.direction == .DOWN
-  return exit_collision_rec.width > TILE_SIZE - 4 && !scene.room.exit_locked && dir
+  return exit_collision_rec.width > TILE_SIZE - 4 && !scene.room.exit_locked
 }
 
-check_collisions :: proc(scene: ^Scene, player: ^entities.Character) {
+trigger_entrance_door :: proc(scene: ^Scene, character: ^entities.Character) {
+  next_to_entrance :=  is_next_to_entrance(scene, character)
+  indoor := is_indoor(scene, character)
+  // player indoor, next to entrance, facing down, door closed, not locked and not opening
+  // player outdoor, next to entrance, facing up, door closed, not locked and not opening
+  may_open := !scene.room.entrance_opened && ((indoor && character.direction == .DOWN) || (!indoor && character.direction == .UP))
+  if next_to_entrance && may_open && !scene.room.entrance_opening {
+    character.moving = false
+    scene.room.entrance_opening = true
+  // close the door
+  } else if !next_to_entrance && scene.room.entrance_opened && !scene.room.entrance_closing {
+    scene.room.entrance_closing = true
+  }
+}
+
+trigger_exit_door :: proc(scene: ^Scene, character: ^entities.Character) {
+  next_to_exit := is_next_to_exit(scene, character)
+  indoor := is_indoor(scene, character)
+  // player indoor, next to exit, facing up, door closed, not locked and not opening
+  // player outdoor, next to exit, facing down, door closed, not locked and not opening
+  may_open := !scene.room.exit_opened && ((indoor && character.direction == .UP) || (!indoor && character.direction == .DOWN))
+  if next_to_exit && may_open && !scene.room.exit_opening {
+    character.moving = false
+    scene.room.exit_opening = true
+  // close the door
+  } else if !next_to_exit && scene.room.exit_opened && !scene.room.exit_closing {
+    scene.room.exit_closing = true
+  }
+}
+
+check_collisions :: proc(scene: ^Scene) {
+  player := get_player(scene)
   collision_rec: rl.Rectangle
+  player_indoor := is_indoor(scene, player)
+
   for character in scene.characters {
+      // ignore if player and character are not in the same place
+      if is_indoor(scene, character) != player_indoor {
+        continue
+      }
+    // with other characters
     _, ok := character.variant.(^entities.Player)
     if !ok {
       collision_rec = rl.GetCollisionRec(player.dest, character.dest)
-      y_ok := collision_rec.width < TILE_SIZE / 4
-      x_ok := collision_rec.height < player.dest.height - (TILE_SIZE / 4)
+
+      vert_x_overlap := collision_rec.height >= character.dest.width / 2
+      vert_y_overlap := collision_rec.width >= character.dest.width / 8 // tolerance
+      hor_x_overlap := collision_rec.height >= character.dest.width / 4
+
       switch player.direction {
       case .UP:
-       if !y_ok && character.layer == 0 {
-         player.dest.y = character.dest.y + character.dest.height - (TILE_SIZE / 4)
-         player.moving = false
-      }
+        if vert_x_overlap && vert_y_overlap && character.layer == 0 {
+          player.moving = false
+        }
       case .DOWN:
-      if !y_ok && character.layer == 2 {
-        player.dest.y = character.dest.y - (TILE_SIZE / 2)
-        player.moving = false
-      }
+        if vert_x_overlap && vert_y_overlap && character.layer == 2 {
+          player.moving = false
+        }
       case .LEFT:
-      if !x_ok {
-        player.dest.x = character.dest.x + character.dest.width
-        player.moving = false
-      }
+        if hor_x_overlap && player.dest.x > character.dest.x && character.layer == 1{
+          player.moving = false
+        }
       case .RIGHT:
-      if !x_ok {
-        player.dest.x = character.dest.x - player.dest.width
-        player.moving = false
+        if hor_x_overlap && player.dest.x < character.dest.x && character.layer == 1 {
+          player.moving = false
+        }
       }
-      }
+    }
+  }
+
+  // with walls
+  next_to_entrance := is_next_to_entrance(scene, player)
+  next_to_exit := is_next_to_exit(scene, player)
+  min_x, max_x, min_y, max_y: f32
+  place: rl.Rectangle
+
+  if player_indoor {
+    place = scene.room.area
+    min_x = place.x
+    max_x = place.x + place.width - player.dest.width
+  } else {
+    place = scene.room.corridor
+    min_x = place.x + TILE_SIZE
+    max_x = place.x + place.width - player.dest.width - TILE_SIZE
+  }
+
+  min_y = place.y - (TILE_SIZE / 2)
+  max_y = place.y + place.height - player.dest.height - (TILE_SIZE / 2)
+
+  if !next_to_entrance && !next_to_exit {
+    if player.dest.x < min_x {
+      player.dest.x = min_x
+    }
+    if player.dest.x > max_x {
+      player.dest.x = max_x
+    }
+    if player.dest.y < min_y {
+      player.dest.y = min_y
+    }
+    if player.dest.y > max_y {
+      player.dest.y = max_y
     }
   }
 }
