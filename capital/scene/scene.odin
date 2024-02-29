@@ -226,7 +226,7 @@ check_collisions :: proc(scene: ^Scene) {
           player.moving = false
         }
       case .LEFT:
-        if hor_x_overlap && player.dest.x > character.dest.x && character.layer == 1{
+        if hor_x_overlap && player.dest.x > character.dest.x && character.layer == 1 {
           player.moving = false
         }
       case .RIGHT:

@@ -117,14 +117,17 @@ render :: proc() {
 }
 
 draw :: proc() {
-  rl.DrawRectangleLines(0, 0, i32(rl.GetScreenWidth()), i32(rl.GetScreenHeight()), rl.RED)
+  // rl.DrawRectangleLines(0, 0, i32(rl.GetScreenWidth()), i32(rl.GetScreenHeight()), rl.RED)
+  text_size := rl.MeasureText("hello, virginie!", 5)
+  font := rl.GetFontDefault()
   scene.render_scene(the_scene)
+  rl.DrawTextEx(font, "hello, virginie!", {(nurse.dest.x - f32(text_size / 2)), nurse.dest.y - 5}, 5, 1, rl.WHITE)
 }
 
 input :: proc() {
   using rl.KeyboardKey
-    if rl.IsKeyDown(LEFT_SHIFT) {
-      player.speed = 2
+    if rl.IsKeyDown(LEFT_SHIFT) || rl.IsKeyDown(RIGHT_SHIFT) {
+      player.speed = 1
     } else {
       player.speed = 0.5
     }
