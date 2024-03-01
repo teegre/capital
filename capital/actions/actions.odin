@@ -2,7 +2,7 @@ package actions
 
 import "../entities"
 
-perform_action :: proc(source, target: ^entities.Character, capsule_name: string) ->  (response: entities.Response) {
+perform_combat_action :: proc(source, target: ^entities.Character, capsule_name: string) ->  (response: entities.Response) {
   using entities
 
   capsule := get_capsule_from_inventory(source, capsule_name)

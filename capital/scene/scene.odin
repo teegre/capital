@@ -81,7 +81,7 @@ update_scene :: proc(scene: ^Scene) {
 animate :: proc(scene: ^Scene) {
   for character in scene.characters {
     character.frame += character.frame_step
-    if character.frame > character.max_frame - 1 {
+    if character.frame == character.max_frame {
       character.frame = character.frame - 1
       character.frame_step = -1
     }

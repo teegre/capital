@@ -63,7 +63,7 @@ init :: proc() {
   player.src = {0, 0, player.size.w, player.size.h}
   player.dest = {
     (scene.WIDTH / 2)-(scene.TILE_SIZE / 2),
-    the_scene.room.corridor.height + the_scene.room.corridor.y - player.size.h - (scene.TILE_SIZE / 2),
+    the_scene.room.corridor.y + the_scene.room.corridor.height - player.size.h - (scene.TILE_SIZE / 2),
     player.size.w,
     player.size.h,
   }
@@ -113,19 +113,17 @@ update :: proc() {
 
 render :: proc() {
   rl.BeginDrawing()
-    rl.ClearBackground(rl.Color{40, 40, 40, 255})
+    rl.ClearBackground(rl.BLACK)
     rl.BeginMode2D(the_scene.camera)
-      draw()
+      rl.BeginShaderMode(shader)
+        draw()
+      rl.EndShaderMode()
     rl.EndMode2D()
   rl.EndDrawing()
 }
 
 draw :: proc() {
-  // rl.DrawRectangleLines(0, 0, i32(rl.GetScreenWidth()), i32(rl.GetScreenHeight()), rl.RED)
-  text_size := rl.MeasureText("hello, virginie!", 5)
-  font := rl.GetFontDefault()
   scene.render_scene(the_scene)
-  rl.DrawTextEx(font, "hello, virginie!", {(nurse.dest.x - f32(text_size / 2)), nurse.dest.y - 5}, 5, 1, rl.WHITE)
 }
 
 input :: proc() {
