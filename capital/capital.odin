@@ -14,6 +14,8 @@ nurse: ^entities.Character
 
 the_scene: ^scene.Scene
 
+shader: rl.Shader;
+
 frame_count: int = 0
 
 init :: proc() {
@@ -22,7 +24,9 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  player = entities.new_player("virginie", "capital/resources/virginie2.png")
+  shader = rl.LoadShader("", "capital/resources/shaders/grayscale.shader")
+
+  player = entities.new_player("virginie", "capital/resources/virginie3.png")
 
   capsules.add_capsule_to_inventory(player, "attack")
   capsules.add_capsule_to_inventory(player, "shield")
@@ -30,7 +34,7 @@ init :: proc() {
 
   player.max_frame = 3
   player.frame_step = 1
-  player.size = {15, 19}
+  player.size = {15, 21}
   player.layer = 1
 
   nurse = entities.new_npc("nurse", "capital/resources/nurse-a.png")
@@ -160,6 +164,7 @@ quit :: proc() {
   entities.delete_character(nurse)
   entities.delete_room(the_scene.room)
   free(the_scene)
+  rl.UnloadShader(shader)
   rl.CloseWindow()
 }
 
