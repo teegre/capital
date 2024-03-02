@@ -14,7 +14,7 @@ nurse: ^entities.Character
 
 the_scene: ^scene.Scene
 
-shader: rl.Shader;
+// shader: rl.Shader;
 
 frame_count: int = 0
 
@@ -24,9 +24,9 @@ init :: proc() {
   rl.SetTargetFPS(60)
   rl.SetExitKey(rl.KeyboardKey(0))
 
-  shader = rl.LoadShader("", "capital/resources/shaders/grayscale.shader")
+  // shader = rl.LoadShader("", "capital/resources/shaders/grayscale.shader")
 
-  player = entities.new_player("virginie", "capital/resources/virginie3.png")
+  player = entities.new_player("éclair", "capital/resources/eclair.png")
 
   capsules.add_capsule_to_inventory(player, "attack")
   capsules.add_capsule_to_inventory(player, "shield")
@@ -34,7 +34,7 @@ init :: proc() {
 
   player.max_frame = 3
   player.frame_step = 1
-  player.size = {15, 21}
+  player.size = {17, 23}
   player.layer = 1
 
   nurse = entities.new_npc("nurse", "capital/resources/nurse-a.png")
@@ -55,7 +55,7 @@ init :: proc() {
 
   the_scene = new(scene.Scene)
 
-  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-d.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
+  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-e.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
   scene.add_to_scene(the_scene, player)
   scene.add_to_scene(the_scene, enemy)
   scene.add_to_scene(the_scene, nurse)
@@ -115,9 +115,9 @@ render :: proc() {
   rl.BeginDrawing()
     rl.ClearBackground(rl.BLACK)
     rl.BeginMode2D(the_scene.camera)
-      rl.BeginShaderMode(shader)
+      // rl.BeginShaderMode(shader)
         draw()
-      rl.EndShaderMode()
+      // rl.EndShaderMode()
     rl.EndMode2D()
   rl.EndDrawing()
 }
@@ -162,7 +162,7 @@ quit :: proc() {
   entities.delete_character(nurse)
   entities.delete_room(the_scene.room)
   free(the_scene)
-  rl.UnloadShader(shader)
+  // rl.UnloadShader(shader)
   rl.CloseWindow()
 }
 
