@@ -36,7 +36,7 @@ Character :: struct {
   max_frame: int,
   frame_step: int,
   moving: bool,
-  blink: bool,
+  interaction: bool,
 
   variant: union {
     ^Player,
@@ -101,7 +101,7 @@ Direction :: enum {
 
 // A room
 Room :: struct {
-  // Spritesheet consists of 3 rows of 8 sprites and 1 row of 1 sprite:
+  // Spritesheet consists of 3 rows of 8 sprites and 1 row of 3 sprites:
   // Line 1: Walls (LC TE RC LE RE BL BE BR ).
   // Line 2: Entrance + animation.
   // Line 3: Exit door + animation

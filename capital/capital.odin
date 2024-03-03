@@ -34,7 +34,7 @@ init :: proc() {
 
   player.max_frame = 3
   player.frame_step = 1
-  player.size = {17, 23}
+  player.size = {17, 23} // should be determined automatically
   player.layer = 1
 
   nurse = entities.new_npc("nurse", "capital/resources/nurse-a.png")
@@ -55,7 +55,7 @@ init :: proc() {
 
   the_scene = new(scene.Scene)
 
-  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-e.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
+  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-d.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
   scene.add_to_scene(the_scene, player)
   scene.add_to_scene(the_scene, enemy)
   scene.add_to_scene(the_scene, nurse)
@@ -152,6 +152,8 @@ input :: proc() {
       the_scene.zoom += 0.1
     } else if rl.IsKeyPressed(Q) {
       the_scene.zoom -= 0.1
+    } else if rl.IsKeyPressed(ENTER) {
+      scene.interact(the_scene)
     }
 }
 

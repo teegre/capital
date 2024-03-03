@@ -4,10 +4,10 @@ import rl "vendor:raylib"
 import "../entities"
 import "../room"
 
-SCREEN_SCALING :: 160
 TILE_SIZE :: 16
 WIDTH :: 960
 HEIGHT :: 560
+SCREEN_SCALING :: 160
 
 Scene :: struct {
   room: ^entities.Room,
@@ -211,7 +211,12 @@ check_collisions :: proc(scene: ^Scene) {
     _, ok := character.variant.(^entities.Player)
     if !ok {
       collision_rec = rl.GetCollisionRec(player.dest, character.dest)
-
+      if collision_rec.width == 0 && collision_rec.height == 0 { // ignore if no collision
+        character.interaction = false
+        continue
+      } else {
+        character.interaction = true
+      }
       vert_x_overlap := collision_rec.height >= character.dest.width / 2
       vert_y_overlap := collision_rec.width >= character.dest.width / 4 // tolerance
       hor_x_overlap := collision_rec.height >= character.dest.width / 4
@@ -268,6 +273,24 @@ check_collisions :: proc(scene: ^Scene) {
     }
     if player.dest.y > max_y {
       player.dest.y = max_y
+    }
+  }
+}
+
+interact :: proc(scene: ^Scene) {
+  player := get_player(scene)
+  for character in scene.characters {
+    if character.interaction {
+      switch player.direction {
+      case .DOWN:
+        character.direction = .UP
+      case .UP:
+        character.direction = .DOWN
+      case .LEFT:
+        character.direction = .RIGHT
+      case .RIGHT:
+        character.direction = .LEFT
+      }
     }
   }
 }
