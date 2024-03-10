@@ -26,7 +26,7 @@ init :: proc() {
 
   // shader = rl.LoadShader("", "capital/resources/shaders/grayscale.shader")
 
-  player = entities.new_player("éclair", "capital/resources/eclair.png")
+  player = entities.new_player("virginie", "capital/resources/virginie3.png")
 
   capsules.add_capsule_to_inventory(player, "attack")
   capsules.add_capsule_to_inventory(player, "shield")
@@ -34,7 +34,7 @@ init :: proc() {
 
   player.max_frame = 3
   player.frame_step = 1
-  player.size = {17, 23} // should be determined automatically
+  player.size = {15, 21} // should be determined automatically
   player.layer = 1
 
   nurse = entities.new_npc("nurse", "capital/resources/nurse-a.png")
@@ -127,7 +127,35 @@ draw :: proc() {
 }
 
 input :: proc() {
-  using rl.KeyboardKey
+  gamepad :: 0
+
+  if rl.IsGamepadAvailable(gamepad) {
+    if rl.IsGamepadButtonDown(gamepad, rl.GamepadButton.LEFT_FACE_UP) {
+      player.moving = true
+      player.direction = .UP
+    } else if rl.IsGamepadButtonDown(gamepad, rl.GamepadButton.LEFT_FACE_DOWN) {
+      player.moving = true
+      player.direction = .DOWN
+    } else if rl.IsGamepadButtonDown(gamepad, rl.GamepadButton.LEFT_FACE_LEFT) {
+      player.moving = true
+      player.direction = .LEFT
+    } else if rl.IsGamepadButtonDown(gamepad, rl.GamepadButton.LEFT_FACE_RIGHT) {
+      player.moving = true
+      player.direction = .RIGHT
+    }
+    if player.moving {
+      if rl.IsGamepadButtonDown(gamepad, rl.GamepadButton.RIGHT_FACE_DOWN) {
+        player.speed = 1
+      } else {
+        player.speed = 0.5
+      }
+    } else {
+      if rl.IsGamepadButtonPressed(gamepad, rl.GamepadButton.RIGHT_FACE_DOWN) {
+        scene.interact(the_scene)
+      }
+    } 
+  } else {
+    using rl.KeyboardKey
     if rl.IsKeyDown(LEFT_SHIFT) || rl.IsKeyDown(RIGHT_SHIFT) {
       player.speed = 1
     } else {
@@ -155,6 +183,7 @@ input :: proc() {
     } else if rl.IsKeyPressed(ENTER) {
       scene.interact(the_scene)
     }
+  }
 }
 
 quit :: proc() {
