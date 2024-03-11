@@ -26,7 +26,7 @@ init :: proc() {
 
   // shader = rl.LoadShader("", "capital/resources/shaders/grayscale.shader")
 
-  player = entities.new_player("virginie", "capital/resources/virginie3.png")
+  player = entities.new_player("Eclair", "capital/resources/eclair.png")
 
   capsules.add_capsule_to_inventory(player, "attack")
   capsules.add_capsule_to_inventory(player, "shield")
@@ -34,7 +34,7 @@ init :: proc() {
 
   player.max_frame = 3
   player.frame_step = 1
-  player.size = {15, 21} // should be determined automatically
+  player.size = {17, 23} // should be determined automatically
   player.layer = 1
 
   nurse = entities.new_npc("nurse", "capital/resources/nurse-a.png")
@@ -55,7 +55,7 @@ init :: proc() {
 
   the_scene = new(scene.Scene)
 
-  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-d.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
+  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-e.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
   scene.add_to_scene(the_scene, player)
   scene.add_to_scene(the_scene, enemy)
   scene.add_to_scene(the_scene, nurse)
