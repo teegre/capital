@@ -55,7 +55,7 @@ init :: proc() {
 
   the_scene = new(scene.Scene)
 
-  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-e.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
+  scene.add_to_scene(the_scene, room.make_room("capital/resources/room-d.png", scene.WIDTH, scene.HEIGHT, 7, 7, scene.TILE_SIZE))
   scene.add_to_scene(the_scene, player)
   scene.add_to_scene(the_scene, enemy)
   scene.add_to_scene(the_scene, nurse)
